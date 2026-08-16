@@ -1,0 +1,8 @@
+I wanted to build an cross platform app for car showroom 
+where customer can buy and sell his car and showroom can get commission 
+As a customer i should be able to see all cars available on the showroom, with detail of cars and including price 
+As a customer i should also have option to upload my cars , put my cars picture and upload it on the portal
+there is another aspect for same app, where showroom people can use it for internall inventory and tracking system 
+As most of the showroom run in a shared model, so the app handle the complete manual process 
+Where you will have list of investor and investor can also see the number of cars do they have and percentage on each car they have 
+They can also see , the profit or loss they have in their cars. 

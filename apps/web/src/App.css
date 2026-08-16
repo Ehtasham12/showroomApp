@@ -1,0 +1,215 @@
+/* App Layout */
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-body {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Design System Colors */
+:root {
+  --primary: #1F2937;
+  --secondary: #3B82F6;
+  --accent: #DC2626;
+  --neutral: #F3F4F6;
+  --surface: #FFFFFF;
+  --muted: #6B7280;
+  --line: #E5E7EB;
+  --text-primary: #111827;
+}
+
+/* Utility Classes */
+.text-h2 {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.text-small {
+  font-size: 14px;
+}
+
+.text-body {
+  font-size: 16px;
+}
+
+.bg-neutral {
+  background-color: var(--neutral);
+}
+
+.bg-white {
+  background-color: var(--surface);
+}
+
+.bg-red-600 {
+  background-color: #DC2626;
+}
+
+.bg-red-700 {
+  background-color: #B91C1C;
+}
+
+.bg-red-50 {
+  background-color: #FEF2F2;
+}
+
+.hover\:bg-red-700:hover {
+  background-color: #B91C1C;
+}
+
+.border-b {
+  border-bottom: 1px solid var(--line);
+}
+
+.border {
+  border: 1px solid var(--line);
+}
+
+.border-line {
+  border-color: var(--line);
+}
+
+.border-red-200 {
+  border-color: #FECACA;
+}
+
+.text-red-700 {
+  color: #B91C1C;
+}
+
+/* Grid Utilities */
+.grid {
+  display: grid;
+}
+
+.gap-3 {
+  gap: 12px;
+}
+
+.gap-4 {
+  gap: 16px;
+}
+
+.gap-6 {
+  gap: 24px;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .xl\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Flexbox */
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* Padding */
+.p-4 {
+  padding: 16px;
+}
+
+.p-6 {
+  padding: 24px;
+}
+
+.mb-1 {
+  margin-bottom: 4px;
+}
+
+.mb-6 {
+  margin-bottom: 24px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+/* Rounded */
+.rounded-lg {
+  border-radius: 8px;
+}
+
+/* Mobile Layout */
+@media (max-width: 768px) {
+  .app-main {
+    position: relative;
+    /* Reserve space for the fixed 64px sidebar rail so route content
+       is not overlapped by it. The sidebar itself is position: fixed
+       and therefore out of flow, so we must push content in manually. */
+    padding-left: 64px;
+  }
+
+  .app-content {
+    width: 100%;
+  }
+}

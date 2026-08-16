@@ -1,0 +1,19 @@
+{
+  "extends": "expo/tsconfig",
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@showroom/*": ["../../packages/*/index.ts"]
+    },
+    "jsx": "react-jsx"
+  },
+  "include": ["src", "app.json"]
+}

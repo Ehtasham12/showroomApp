@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Awan Cars — UX Prototype (MVP Phase 1)</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS — from ux-design.md §Design System
+   ============================================================ */
+:root{
+  /* Core palette */
+  --ink:#1F2937;          /* primary   */
+  --ink-900:#111827;      /* depth     */
+  --ink-700:#374151;
+  --blue:#3B82F6;         /* secondary */
+  --red:#DC2626;          /* accent / Awan brand */
+  --bg:#F3F4F6;           /* neutral   */
+  --surface:#FFFFFF;
+  --surface-2:#F9FAFB;
+  --line:#E5E7EB;
+  --line-strong:#D1D5DB;
+  --text:#111827;
+  --muted:#6B7280;
+  --muted-2:#9CA3AF;
+
+  /* Status */
+  --ok:#059669; --ok-bg:#ECFDF5;
+  --warn:#D97706; --warn-bg:#FFFBEB;
+  --gone:#6B7280; --gone-bg:#F3F4F6;
+  --info-bg:#EFF6FF;
+
+  /* Tenant brand (overridable — §Custom Branding per Showroom) */
+  --brand:#DC2626;
+  --brand-ink:#FFFFFF;
+
+  /* Spacing — 8px base */
+  --s1:8px; --s2:16px; --s3:24px; --s4:32px; --s6:48px; --s8:64px;
+
+  /* Radius / elevation */
+  --r-sm:6px; --r:8px; --r-lg:14px; --r-xl:20px;
+  --sh-1:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --sh-2:0 4px 12px rgba(16,24,40,.08), 0 1px 3px rgba(16,24,40,.06);
+  --sh-3:0 18px 40px rgba(16,24,40,.16);
+
+  /* Type */
+  --ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+
+  --header-h:64px;
+  --tabbar-h:64px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:#E8EAEE; color:var(--text);
+  font-family:var(--ui); font-size:16px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,p,figure{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+ul{margin:0;padding:0;list-style:none}
+img,svg{display:block;max-width:100%}
+
+/* Type scale — §Typography */
+.h1{font-size:32px;line-height:1.2;font-weight:700;letter-spacing:-.02em}
+.h2{font-size:24px;line-height:1.25;font-weight:650;letter-spacing:-.015em}
+.h3{font-size:20px;line-height:1.3;font-weight:650;letter-spacing:-.01em}
+.body{font-size:16px}
+.small{font-size:14px}
+.tiny{font-size:12px}
+.muted{color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* Accessibility — visible 2px focus ring */
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+
+/* ============================================================
+   PROTOTYPE CHROME (the toolbar around the mock — not the product)
+   ============================================================ */
+.chrome{
+  position:sticky;top:0;z-index:60;
+  background:var(--ink-900);color:#E5E7EB;
+  border-bottom:1px solid #000;
+  padding:10px 16px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.chrome__brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.chrome__brand b{font-size:14px;letter-spacing:.01em;color:#fff}
+.chrome__brand span{font-size:12px;color:#9CA3AF}
+.chip-group{display:flex;background:#1F2937;border:1px solid #374151;border-radius:999px;padding:3px;gap:2px}
+.chip-group button{
+  min-height:32px;padding:0 14px;border-radius:999px;
+  font-size:13px;font-weight:550;color:#9CA3AF;white-space:nowrap;
+  transition:background .15s,color .15s;
+}
+.chip-group button[aria-pressed="true"]{background:var(--brand);color:#fff}
+.chrome__label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:#6B7280;font-weight:650}
+.swatches{display:flex;gap:6px}
+.swatches button{
+  width:26px;height:26px;border-radius:50%;border:2px solid transparent;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+}
+.swatches button[aria-pressed="true"]{border-color:#fff}
+
+/* ============================================================
+   STAGE + SHELLS
+   ============================================================ */
+.stage{padding:24px;display:flex;justify-content:center}
+#root.dev-mobile .stage{padding:28px 16px}
+
+.shell{
+  width:100%;max-width:1320px;
+  background:var(--bg);
+  border-radius:var(--r-lg);
+  box-shadow:var(--sh-3);
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:248px 1fr;
+  min-height:720px;
+}
+
+/* --- Mobile device frame --- */
+#root.dev-mobile .shell{
+  grid-template-columns:1fr;
+  max-width:392px;
+  min-height:788px;
+  border-radius:38px;
+  border:11px solid #0B0D11;
+  position:relative;
+  box-shadow:var(--sh-3), 0 0 0 2px #2A2E36;
+}
+#root.dev-mobile .shell::before{
+  content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  width:108px;height:24px;background:#0B0D11;border-radius:0 0 14px 14px;z-index:40;
+}
+
+/* ============================================================
+   SIDEBAR (desktop) — §Navigation Structure > Web App
+   ============================================================ */
+.sidebar{
+  background:var(--ink-900);color:#D1D5DB;
+  display:flex;flex-direction:column;padding:20px 12px;gap:4px;
+}
+#root.dev-mobile .sidebar{display:none}
+.sidebar__brand{display:flex;align-items:center;gap:12px;padding:6px 10px 20px}
+.logo-mark{
+  width:40px;height:40px;border-radius:11px;flex:none;
+  background:var(--brand);color:var(--brand-ink);
+  display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:.02em;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+.sidebar__brand .nm{font-size:15px;font-weight:650;color:#fff;line-height:1.2}
+.sidebar__brand .loc{font-size:12px;color:#9CA3AF}
+.nav-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:.09em;
+  color:#6B7280;font-weight:700;padding:16px 12px 6px;
+}
+.navlink{
+  display:flex;align-items:center;gap:12px;width:100%;
+  min-height:44px;padding:0 12px;border-radius:var(--r);
+  font-size:15px;font-weight:500;color:#D1D5DB;text-align:left;
+  transition:background .15s,color .15s;
+}
+.navlink:hover{background:#1F2937;color:#fff}
+.navlink[aria-current="page"]{background:var(--brand);color:#fff;font-weight:600}
+.navlink svg{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.navlink .count{
+  margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:600;
+  background:rgba(255,255,255,.14);padding:2px 7px;border-radius:999px;
+}
+.sidebar__foot{margin-top:auto;padding-top:16px;border-top:1px solid #1F2937}
+
+/* ============================================================
+   MAIN + TOPBAR
+   ============================================================ */
+.main{display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+.topbar{
+  height:var(--header-h);flex:none;
+  background:var(--surface);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;padding:0 24px;
+}
+#root.dev-mobile .topbar{display:none}
+.searchbox{position:relative;flex:1;max-width:460px}
+.searchbox svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2}
+.searchbox input{
+  width:100%;height:40px;padding:0 12px 0 38px;
+  border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface-2);
+}
+.searchbox input:focus{background:#fff;border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+.topbar__right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:40px;height:40px;border-radius:var(--r);display:grid;place-items:center;
+  color:var(--ink-700);position:relative;
+}
+.icon-btn:hover{background:var(--bg)}
+.icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid #fff}
+.avatar{
+  width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;
+  display:grid;place-items:center;font-size:13px;font-weight:700;
+}
+
+/* --- Mobile header (§Screen 1 combined header) --- */
+.mheader{display:none}
+#root.dev-mobile .mheader{
+  display:flex;align-items:center;gap:12px;flex:none;
+  background:var(--ink-900);color:#fff;
+  padding:36px 16px 14px;
+}
+.mheader .logo-mark{width:36px;height:36px;border-radius:10px;font-size:13px}
+.mheader .nm{font-size:15px;font-weight:650;line-height:1.2}
+.mheader .sub{font-size:12px;color:#9CA3AF}
+.mheader .back{
+  width:36px;height:36px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.1);
+}
+.mheader .back svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- Content scroll area --- */
+.content{flex:1;overflow-y:auto;padding:24px;min-width:0}
+#root.dev-mobile .content{padding:16px;padding-bottom:calc(var(--tabbar-h) + 24px)}
+
+/* --- Bottom tab bar (mobile) — §Navigation Structure > Mobile App --- */
+.tabbar{display:none}
+#root.dev-mobile .tabbar{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  height:var(--tabbar-h);flex:none;
+  background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:4px;
+}
+.tabbar button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--muted);font-size:11px;font-weight:550;min-height:48px;position:relative;
+}
+.tabbar button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-current="page"]{color:var(--brand)}
+.tabbar .badge{
+  position:absolute;top:6px;right:50%;margin-right:-22px;
+  background:var(--red);color:#fff;font-family:var(--mono);font-size:10px;font-weight:700;
+  min-width:17px;height:17px;border-radius:999px;display:grid;place-items:center;padding:0 4px;
+}
+
+/* ============================================================
+   PRIMITIVES
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:0 18px;border-radius:var(--r);
+  font-size:15px;font-weight:600;white-space:nowrap;
+  border:1px solid transparent;transition:background .15s,border-color .15s,transform .06s;
+}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn--primary{background:var(--brand);color:var(--brand-ink)}
+.btn--primary:hover{filter:brightness(.93)}
+.btn--dark{background:var(--ink);color:#fff}
+.btn--dark:hover{background:var(--ink-900)}
+.btn--ghost{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+.btn--ghost:hover{background:var(--surface-2);border-color:var(--muted-2)}
+.btn--quiet{background:transparent;color:var(--ink-700);padding:0 10px}
+.btn--quiet:hover{background:var(--bg)}
+.btn--sm{min-height:36px;padding:0 12px;font-size:14px}
+.btn--block{width:100%}
+#root.dev-mobile .btn{min-height:48px}
+
+.card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh-1);
+}
+.pad{padding:24px}
+#root.dev-mobile .pad{padding:16px}
+
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  height:28px;padding:0 10px;border-radius:999px;
+  font-size:12px;font-weight:650;letter-spacing:.01em;white-space:nowrap;
+}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge--ok{background:var(--ok-bg);color:var(--ok)}
+.badge--warn{background:var(--warn-bg);color:var(--warn)}
+.badge--gone{background:var(--gone-bg);color:var(--gone)}
+.badge--new{background:#FEF2F2;color:var(--red)}
+
+.field{display:block;margin-bottom:16px}
+.field > .lab{display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--ink-700)}
+.field input, .field select, .field textarea{
+  width:100%;min-height:46px;padding:11px 14px;
+  border:1px solid var(--line-strong);border-radius:var(--r);background:var(--surface);
+}
+.field textarea{min-height:104px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.18);
+}
+.field .hint{font-size:12px;color:var(--muted);margin-top:5px}
+.field.err input,.field.err select{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.14)}
+.field .errmsg{display:none;font-size:13px;color:var(--red);margin-top:5px;font-weight:550}
+.field.err .errmsg{display:block}
+
+.page-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.page-head .sub{color:var(--muted);font-size:15px;margin-top:2px}
+.page-head .actions{margin-left:auto;display:flex;gap:8px}
+#root.dev-mobile .page-head{margin-bottom:16px}
+#root.dev-mobile .page-head .actions{margin-left:0;width:100%}
+#root.dev-mobile .page-head .actions .btn{flex:1}
+
+/* ============================================================
+   SIGNATURE: the spec cluster — an instrument-panel readout
+   Year / Odometer / Gearbox / Fuel in tabular mono, hairline-divided
+   ============================================================ */
+.cluster{
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface-2);overflow:hidden;
+}
+.cluster > div{padding:8px 10px;border-right:1px solid var(--line);min-width:0}
+.cluster > div:last-child{border-right:0}
+.cluster .k{
+  display:block;font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted-2);
+}
+.cluster .v{
+  display:block;font-family:var(--mono);font-size:14px;font-weight:600;
+  font-variant-numeric:tabular-nums;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;
+}
+
+/* ============================================================
+   CAR CARDS  — §Screen 1
+   ============================================================ */
+.car-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(288px,1fr))}
+#root.dev-mobile .car-grid{grid-template-columns:1fr;gap:12px}
+
+.car{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh-1);overflow:hidden;text-align:left;width:100%;
+  display:flex;flex-direction:column;
+  transition:box-shadow .18s,border-color .18s,transform .18s;
+}
+.car:hover{box-shadow:var(--sh-2);border-color:var(--line-strong);transform:translateY(-2px)}
+.car__art{position:relative;aspect-ratio:16/9;background:var(--ink-900)}
+.car__art svg{width:100%;height:100%}
+.car__art .badge{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.94);backdrop-filter:blur(4px)}
+.car__art .shots{
+  position:absolute;bottom:10px;right:10px;
+  background:rgba(11,13,17,.72);color:#fff;font-family:var(--mono);font-size:11px;font-weight:600;
+  padding:3px 8px;border-radius:999px;
+}
+.car__body{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.car__title{font-size:16px;font-weight:650;letter-spacing:-.01em;line-height:1.3}
+.car__price{
+  font-family:var(--mono);font-size:19px;font-weight:700;
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em;color:var(--ink-900);
+}
+.car__price .cur{font-size:12px;font-weight:600;color:var(--muted);margin-right:4px}
+.car__foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:2px}
+.stars{color:#F59E0B;font-size:13px;letter-spacing:1px}
+
+/* ============================================================
+   FILTER BAR
+   ============================================================ */
+.toolbar{
+  display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;
+}
+.toolbar .searchbox{max-width:none;flex:1 1 240px}
+.select-sm{
+  height:40px;padding:0 32px 0 12px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center/16px;
+  appearance:none;font-size:14px;font-weight:550;
+}
+#root.dev-mobile .toolbar{gap:8px}
+#root.dev-mobile .toolbar .searchbox{flex:1 1 100%}
+#root.dev-mobile .select-sm{flex:1;min-height:44px}
+.filter-btn{position:relative}
+.filter-btn .n{
+  background:var(--brand);color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;
+  min-width:18px;height:18px;border-radius:999px;display:grid;place-items:center;padding:0 5px;
+}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 6px 0 11px;
+  border-radius:999px;background:var(--info-bg);color:#1D4ED8;font-size:13px;font-weight:600;
+}
+.pill button{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:14px;line-height:1;color:#1D4ED8}
+.pill button:hover{background:rgba(29,78,216,.14)}
+
+/* ============================================================
+   CAR DETAIL — §Screen 2
+   ============================================================ */
+.detail{display:grid;gap:24px;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);align-items:start}
+#root.dev-mobile .detail{grid-template-columns:1fr;gap:16px}
+
+.carousel{border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--ink-900)}
+.carousel__stage{position:relative;aspect-ratio:16/10}
+.carousel__stage svg{width:100%;height:100%}
+.carousel__nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.92);box-shadow:var(--sh-2);color:var(--ink);
+}
+.carousel__nav svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.carousel__nav.prev{left:12px} .carousel__nav.next{right:12px}
+.dots{display:flex;gap:6px;justify-content:center;padding:12px;background:var(--ink-900)}
+.dots button{width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.3)}
+.dots button[aria-current="true"]{background:#fff;width:22px}
+.thumbs{display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
+.thumbs button{
+  flex:none;width:88px;aspect-ratio:16/10;border-radius:var(--r-sm);overflow:hidden;
+  border:2px solid transparent;background:var(--ink-900);
+}
+.thumbs button[aria-current="true"]{border-color:var(--brand)}
+
+.spec-table{width:100%;border-collapse:collapse}
+.spec-table th,.spec-table td{
+  padding:11px 0;border-bottom:1px solid var(--line);text-align:left;font-size:15px;vertical-align:top;
+}
+.spec-table th{color:var(--muted);font-weight:550;width:46%}
+.spec-table td{font-weight:600;font-family:var(--mono);font-size:14px}
+.spec-table tr:last-child th,.spec-table tr:last-child td{border-bottom:0}
+
+.sticky-cta{position:sticky;top:0}
+#root.dev-mobile .sticky-cta{position:static}
+.price-block{
+  padding:18px 20px;border-radius:var(--r);
+  background:linear-gradient(160deg,var(--ink) 0%,var(--ink-900) 100%);color:#fff;
+}
+.price-block .cur{font-size:13px;color:#9CA3AF;font-weight:600}
+.price-block .amt{font-family:var(--mono);font-size:30px;font-weight:700;letter-spacing:-.035em;line-height:1.15}
+.price-block .note{font-size:13px;color:#9CA3AF;margin-top:4px}
+
+.disclose{border-top:1px solid var(--line)}
+.disclose summary{
+  list-style:none;cursor:pointer;padding:16px 0;
+  display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;
+}
+.disclose summary::-webkit-details-marker{display:none}
+.disclose summary::after{
+  content:"";margin-left:auto;width:9px;height:9px;
+  border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s;
+}
+.disclose[open] summary::after{transform:rotate(-135deg) translate(-3px,-3px)}
+.disclose > div{padding-bottom:20px}
+
+/* ============================================================
+   WIZARD — §Screen 3
+   ============================================================ */
+.steps{display:flex;gap:6px;margin-bottom:8px}
+.steps div{height:5px;flex:1;border-radius:999px;background:var(--line)}
+.steps div.on{background:var(--brand)}
+.step-meta{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:24px}
+.wizard{max-width:620px;margin:0 auto}
+.q{font-size:24px;font-weight:650;letter-spacing:-.015em;margin-bottom:6px}
+.q-sub{color:var(--muted);margin-bottom:24px}
+.radio-row{display:grid;gap:8px}
+.radio-row label{
+  display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;
+  border:1px solid var(--line-strong);border-radius:var(--r);cursor:pointer;background:var(--surface);
+}
+.radio-row label:hover{border-color:var(--muted-2);background:var(--surface-2)}
+.radio-row input{accent-color:var(--brand);width:20px;height:20px;flex:none}
+.radio-row label:has(input:checked){border-color:var(--brand);background:#FEF2F2;box-shadow:inset 0 0 0 1px var(--brand)}
+.radio-row .rl{font-weight:600}
+.radio-row .rd{font-size:13px;color:var(--muted)}
+.grid-2{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+#root.dev-mobile .grid-2{grid-template-columns:1fr;gap:0}
+
+.dropzone{
+  border:2px dashed var(--line-strong);border-radius:var(--r);
+  padding:32px 20px;text-align:center;background:var(--surface-2);
+}
+.dropzone svg{width:36px;height:36px;stroke:var(--muted-2);fill:none;stroke-width:1.6;margin:0 auto 10px}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:16px}
+.photo-slot{
+  aspect-ratio:4/3;border-radius:var(--r-sm);background:var(--ink-900);position:relative;overflow:hidden;
+}
+.photo-slot.empty{background:var(--surface-2);border:1px dashed var(--line-strong)}
+.photo-slot .pin{
+  position:absolute;top:5px;left:5px;background:rgba(11,13,17,.75);color:#fff;
+  font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;
+}
+.wizard-foot{display:flex;gap:12px;margin-top:32px;padding-top:20px;border-top:1px solid var(--line)}
+.wizard-foot .btn{flex:1}
+
+/* ============================================================
+   DASHBOARD / STATS / TABLE — §Screen 4
+   ============================================================ */
+.stat-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:24px}
+#root.dev-mobile .stat-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px;box-shadow:var(--sh-1);text-align:left;width:100%;
+  border-top:3px solid var(--accent,var(--ink));
+  transition:box-shadow .18s,transform .18s;
+}
+.stat:hover{box-shadow:var(--sh-2);transform:translateY(-2px)}
+.stat .k{font-size:13px;font-weight:600;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-size:30px;font-weight:700;letter-spacing:-.04em;line-height:1.2;margin-top:4px}
+.stat .d{font-size:12px;font-weight:600;margin-top:2px}
+.stat .d.up{color:var(--ok)} .stat .d.dn{color:var(--red)}
+#root.dev-mobile .stat{padding:14px}
+#root.dev-mobile .stat .v{font-size:24px}
+
+.table-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-1)}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{
+  text-align:left;padding:12px 16px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);white-space:nowrap;
+  font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--muted);
+}
+.tbl th button{display:inline-flex;align-items:center;gap:5px;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit}
+.tbl th button::after{content:"↕";opacity:.4;font-size:11px}
+.tbl th[aria-sort="ascending"] button::after{content:"↑";opacity:1;color:var(--brand)}
+.tbl th[aria-sort="descending"] button::after{content:"↓";opacity:1;color:var(--brand)}
+.tbl td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr{cursor:pointer;transition:background .12s}
+.tbl tbody tr:hover{background:var(--info-bg)}
+.tbl .rowact{opacity:0;display:flex;gap:4px;transition:opacity .15s}
+.tbl tbody tr:hover .rowact,.tbl tbody tr:focus-within .rowact{opacity:1}
+.tbl .idx{font-family:var(--mono);color:var(--muted-2);font-size:13px}
+.tbl .name{font-weight:600}
+.tbl .sub{font-size:13px;color:var(--muted)}
+
+/* Mobile: table collapses to stacked rows */
+#root.dev-mobile .tbl thead{display:none}
+#root.dev-mobile .tbl,#root.dev-mobile .tbl tbody,#root.dev-mobile .tbl tr,#root.dev-mobile .tbl td{display:block;width:100%}
+#root.dev-mobile .tbl tr{padding:12px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:6px 12px}
+#root.dev-mobile .tbl td{padding:0;border:0}
+#root.dev-mobile .tbl td[data-col="idx"]{display:none}
+#root.dev-mobile .tbl td[data-col="name"]{grid-column:1}
+#root.dev-mobile .tbl td[data-col="status"]{grid-column:2;grid-row:1;justify-self:end}
+#root.dev-mobile .tbl td[data-col="year"],#root.dev-mobile .tbl td[data-col="price"]{grid-column:1;font-family:var(--mono);font-size:13px;color:var(--muted)}
+#root.dev-mobile .tbl td[data-col="inq"]{grid-column:2;justify-self:end}
+#root.dev-mobile .tbl td[data-col="act"]{display:none}
+
+/* ============================================================
+   INQUIRIES — §Screen 5
+   ============================================================ */
+.inq{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;box-shadow:var(--sh-1);display:flex;gap:14px;
+}
+.inq + .inq{margin-top:10px}
+.inq.unread{border-left:3px solid var(--brand)}
+.inq__av{
+  width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:var(--bg);color:var(--ink-700);font-weight:700;font-size:14px;
+}
+.inq__b{flex:1;min-width:0}
+.inq__top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.inq__nm{font-weight:650}
+.inq__about{font-size:13px;color:var(--muted);margin-top:1px}
+.inq__msg{
+  margin-top:8px;padding:10px 12px;background:var(--surface-2);
+  border-radius:var(--r-sm);font-size:15px;color:var(--ink-700);border-left:2px solid var(--line-strong);
+}
+.inq__foot{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.inq__time{font-family:var(--mono);font-size:12px;color:var(--muted-2);margin-left:auto}
+#root.dev-mobile .inq__time{margin-left:0;width:100%;order:-1;margin-bottom:2px}
+
+/* ============================================================
+   CHARTS (owner reports)
+   ============================================================ */
+.chart-grid{display:grid;gap:16px;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+#root.dev-mobile .chart-grid{grid-template-columns:1fr}
+.bars{display:flex;align-items:flex-end;gap:10px;height:196px;padding-top:26px}
+.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px;height:100%}
+.bars .bar{
+  width:100%;max-width:44px;border-radius:5px 5px 0 0;
+  background:var(--brand);
+  background:linear-gradient(180deg,var(--brand),color-mix(in srgb,var(--brand) 55%,#000));
+  min-height:4px;position:relative;
+}
+.bars .bar span{
+  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-700);
+}
+.bars .lbl{font-size:12px;color:var(--muted);font-weight:600}
+.legend{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.legend div{display:flex;align-items:center;gap:8px;font-size:14px}
+.legend i{width:10px;height:10px;border-radius:3px;flex:none}
+.legend b{margin-left:auto;font-family:var(--mono);font-weight:700}
+
+/* ============================================================
+   MODAL / SHEET
+   ============================================================ */
+.scrim{
+  position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:80;
+  display:grid;place-items:center;padding:24px;
+}
+.scrim[hidden]{display:none}
+.modal{
+  background:var(--surface);border-radius:var(--r-lg);width:100%;max-width:520px;
+  max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--sh-3);overflow:hidden;
+}
+#root.dev-mobile .scrim{align-items:flex-end;padding:0}
+#root.dev-mobile .modal{max-width:none;border-radius:var(--r-xl) var(--r-xl) 0 0;max-height:86vh}
+.modal__hd{display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid var(--line)}
+.modal__bd{padding:24px;overflow-y:auto;flex:1}
+.modal__ft{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:12px}
+.modal__ft .btn{flex:1}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input{flex:1}
+
+/* ============================================================
+   STATES: empty / success / toast
+   ============================================================ */
+.empty{text-align:center;padding:56px 24px}
+.empty svg{width:52px;height:52px;stroke:var(--muted-2);fill:none;stroke-width:1.4;margin:0 auto 16px}
+.empty h3{font-size:18px;font-weight:650;margin-bottom:6px}
+.empty p{color:var(--muted);max-width:340px;margin:0 auto 20px}
+
+.success{text-align:center;max-width:440px;margin:40px auto;padding:0 8px}
+.success .tick{
+  width:76px;height:76px;border-radius:50%;background:var(--ok-bg);color:var(--ok);
+  display:grid;place-items:center;margin:0 auto 20px;
+}
+.success .tick svg{width:38px;height:38px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,120%);
+  background:var(--ink-900);color:#fff;padding:13px 20px;border-radius:999px;
+  font-size:14px;font-weight:550;box-shadow:var(--sh-3);z-index:120;
+  display:flex;align-items:center;gap:10px;transition:transform .28s cubic-bezier(.2,.9,.3,1);
+  max-width:calc(100vw - 32px);
+}
+.toast.show{transform:translate(-50%,0)}
+.toast svg{width:18px;height:18px;stroke:#34D399;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+.note{
+  display:flex;gap:10px;padding:12px 14px;border-radius:var(--r);
+  background:var(--info-bg);color:#1E40AF;font-size:14px;line-height:1.45;
+}
+.note svg{width:18px;height:18px;flex:none;margin-top:2px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* Real small screens: force the mobile layout regardless of toggle */
+@media (max-width:860px){
+  .stage{padding:0}
+  .shell{border-radius:0;min-height:100vh}
+  .sidebar{display:none}
+  #root:not(.dev-mobile) .shell{grid-template-columns:1fr}
+  #root:not(.dev-mobile) .topbar{padding:0 16px}
+  #root:not(.dev-mobile) .content{padding:16px}
+  .chrome{padding:8px 12px;gap:10px}
+  .chrome__brand span{display:none}
+}
+</style>
+</head>
+<body>
+<div id="root" class="dev-desktop">
+
+  <!-- ── Prototype chrome (not part of the product) ───────────── -->
+  <div class="chrome">
+    <div class="chrome__brand">
+      <b>Awan Cars — UX Prototype</b>
+      <span>MVP Phase 1 · click anything</span>
+    </div>
+
+    <span class="chrome__label">View</span>
+    <div class="chip-group" id="deviceToggle">
+      <button data-device="desktop" aria-pressed="true">Desktop</button>
+      <button data-device="mobile" aria-pressed="false">Mobile</button>
+    </div>
+
+    <span class="chrome__label">Signed in as</span>
+    <div class="chip-group" id="roleToggle">
+      <button data-role="customer" aria-pressed="true">Customer</button>
+      <button data-role="staff" aria-pressed="false">Staff</button>
+      <button data-role="admin" aria-pressed="false">Owner</button>
+    </div>
+
+    <span class="chrome__label">Brand</span>
+    <div class="swatches" id="brandPicker">
+      <button data-brand="#DC2626" style="background:#DC2626" aria-pressed="true" aria-label="Red"></button>
+      <button data-brand="#2563EB" style="background:#2563EB" aria-pressed="false" aria-label="Blue"></button>
+      <button data-brand="#059669" style="background:#059669" aria-pressed="false" aria-label="Green"></button>
+      <button data-brand="#1F2937" style="background:#1F2937" aria-pressed="false" aria-label="Graphite"></button>
+    </div>
+  </div>
+
+  <!-- ── The product ──────────────────────────────────────────── -->
+  <div class="stage">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="sidebar__brand">
+          <div class="logo-mark">AC</div>
+          <div>
+            <div class="nm">Awan Cars</div>
+            <div class="loc">Jauharabad</div>
+          </div>
+        </div>
+        <nav id="sideNav" aria-label="Main"></nav>
+        <div class="sidebar__foot">
+          <button class="navlink" data-nav="logout"><span id="logoutIcon"></span>Log out</button>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="searchbox">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input id="topSearch" type="search" placeholder="Search make, model or stock number" aria-label="Search inventory">
+          </div>
+          <div class="topbar__right">
+            <button class="icon-btn" id="bellBtn" aria-label="Notifications">
+              <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></svg>
+              <span class="dot"></span>
+            </button>
+            <div class="avatar" id="topAvatar">RK</div>
+          </div>
+        </header>
+
+        <header class="mheader" id="mHeader"></header>
+        <main class="content" id="content" tabindex="-1"></main>
+        <nav class="tabbar" id="tabBar" aria-label="Main"></nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ================================================================
+   ICONS (Feather-style, 24px stroke — §Icons)
+   ================================================================ */
+const I = {
+  car:'<path d="M4 13l1.7-4.5A2 2 0 0 1 7.6 7h8.8a2 2 0 0 1 1.9 1.5L20 13v4a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-.5h-9v.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4Z"/><path d="M4 13h16"/>',
+  grid:'<rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  chat:'<path d="M21 11.6a7.9 7.9 0 0 1-8 7.9H7.4L3.4 22l1.1-3.9A7.9 7.9 0 1 1 21 11.6Z"/>',
+  user:'<circle cx="12" cy="8" r="3.8"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/>',
+  chart:'<path d="M3 20h18M6.5 20v-6M12 20V5.5M17.5 20v-9"/>',
+  cog:'<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/>',
+  users:'<circle cx="9" cy="8" r="3.4"/><path d="M2.8 20a6.2 6.2 0 0 1 12.4 0"/><path d="M16 5.4a3.4 3.4 0 0 1 0 6.6M17.5 14.6A6.2 6.2 0 0 1 21.2 20"/>',
+  back:'<path d="M19 12H5M11 18l-6-6 6-6"/>',
+  chevL:'<path d="M15 18l-6-6 6-6"/>',
+  chevR:'<path d="M9 18l6-6-6-6"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  filter:'<path d="M3 5.5h18M6.5 12h11M10 18.5h4"/>',
+  upload:'<path d="M12 16.5V4M7 9l5-5 5 5"/><path d="M4 16v3.5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V16"/>',
+  heart:'<path d="M12 20.2s-7.2-4.5-7.2-9.4a4.1 4.1 0 0 1 7.2-2.7 4.1 4.1 0 0 1 7.2 2.7c0 4.9-7.2 9.4-7.2 9.4Z"/>',
+  phone:'<path d="M5 3.5h3.6l1.9 4.6-2.4 1.5a11.5 11.5 0 0 0 5.4 5.4l1.5-2.4 4.6 1.9V18a2.5 2.5 0 0 1-2.7 2.5A16.4 16.4 0 0 1 2.5 6.2 2.5 2.5 0 0 1 5 3.5Z"/>',
+  info:'<circle cx="12" cy="12" r="8.6"/><path d="M12 11.2v5M12 8h.02"/>',
+  edit:'<path d="M4 20.2h4.2L20 8.4a2 2 0 0 0 0-2.8l-1.6-1.6a2 2 0 0 0-2.8 0L4 15.8v4.4Z"/>',
+  trash:'<path d="M4 6.5h16M9.5 6.5V4.2h5v2.3M6.5 6.5l1 13.7h9l1-13.7"/>',
+  logout:'<path d="M15.5 16.5l4.5-4.5-4.5-4.5M20 12H9.5M12.5 3.8H6a1.5 1.5 0 0 0-1.5 1.5v13.4A1.5 1.5 0 0 0 6 20.2h6.5"/>',
+  box:'<path d="M3 7.8l9-4.8 9 4.8v8.4l-9 4.8-9-4.8V7.8Z"/><path d="M3 7.8l9 4.8 9-4.8M12 12.6V21"/>',
+  image:'<rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.6" cy="10" r="1.6"/><path d="M21 15.5L16.4 11 7 20.4"/>',
+  clock:'<circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 2"/>',
+  tag:'<path d="M11.6 3H20a1 1 0 0 1 1 1v8.4a2 2 0 0 1-.6 1.4l-6.6 6.6a2 2 0 0 1-2.8 0l-7-7a2 2 0 0 1 0-2.8l6.6-6.6A2 2 0 0 1 11.6 3Z"/><path d="M16.5 7.5h.02"/>'
+};
+const svg = (k,c='') => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
+
+/* ================================================================
+   DATA (stand-in content — replaced by the Phase 1A API)
+   ================================================================ */
+const CUR = 'PKR';                        // per-tenant setting
+const CARS = [
+  {id:1, make:'Toyota',  model:'Fortuner 2.8 Sigma 4', yr:2022, km:45000,  tr:'Automatic', fuel:'Diesel', col:'Pearl White',   cond:'Excellent', price:14500000, status:'available', shots:8, rating:4.8, reviews:12, hue:212, seller:'showroom', desc:'Single owner, full Toyota service history. Original paint on all panels, non-accidental. Recently serviced at 45,000 km with new tyres fitted.'},
+  {id:2, make:'Suzuki',  model:'Swift GLX CVT',        yr:2021, km:32000,  tr:'Automatic', fuel:'Petrol', col:'Metallic Grey', cond:'Good',      price:4650000,  status:'available', shots:6, rating:4.5, reviews:8,  hue:200, seller:'showroom', desc:'City-driven, well kept. Minor touch-up on rear bumper. All documents clear and transferable same day.'},
+  {id:3, make:'Honda',   model:'Civic Oriel 1.8 i-VTEC',yr:2020, km:58000, tr:'Automatic', fuel:'Petrol', col:'Rallye Red',    cond:'Good',      price:6900000,  status:'pending',   shots:7, rating:4.6, reviews:15, hue:355, seller:'showroom', desc:'Second owner. Sunroof, cruise control, reverse camera. Suspension refreshed last year.'},
+  {id:4, make:'Toyota',  model:'Corolla Altis Grande', yr:2023, km:18400,  tr:'Automatic', fuel:'Petrol', col:'Attitude Black',cond:'Excellent', price:8250000,  status:'available', shots:8, rating:4.9, reviews:6,  hue:220, seller:'showroom', desc:'Under warranty until 2027. Company-maintained, never used outside city limits.'},
+  {id:5, make:'Hyundai', model:'Tucson AWD',           yr:2022, km:41000,  tr:'Automatic', fuel:'Petrol', col:'Polar White',   cond:'Good',      price:9100000,  status:'available', shots:5, rating:4.4, reviews:9,  hue:195, seller:'showroom', desc:'Panoramic roof, ventilated seats, 360 camera. Two new tyres fitted last month.'},
+  {id:6, make:'Suzuki',  model:'Alto VXL AGS',         yr:2023, km:12000,  tr:'Automatic', fuel:'Petrol', col:'Silky Silver',  cond:'Excellent', price:2980000,  status:'available', shots:6, rating:4.3, reviews:21, hue:205, seller:'customer',desc:'Barely driven, kept in covered parking. First owner, complete file with original invoice.'},
+  {id:7, make:'Kia',     model:'Sportage Alpha',       yr:2021, km:62000,  tr:'Automatic', fuel:'Petrol', col:'Steel Grey',    cond:'Fair',      price:7400000,  status:'sold',      shots:4, rating:4.0, reviews:4,  hue:215, seller:'showroom', desc:'Good runner with honest wear. Windscreen replaced, tyres at roughly 60 percent.'},
+  {id:8, make:'Toyota',  model:'Hilux Revo V',         yr:2019, km:96000,  tr:'Automatic', fuel:'Diesel', col:'Super White',   cond:'Good',      price:10200000, status:'available', shots:7, rating:4.5, reviews:11, hue:208, seller:'showroom', desc:'Fleet-maintained 4x4 with complete service book. New clutch and brake discs at 90,000 km.'},
+  {id:9, make:'Honda',   model:'City Aspire 1.5 CVT',  yr:2022, km:27500,  tr:'Automatic', fuel:'Petrol', col:'Lunar Silver',  cond:'Excellent', price:5350000,  status:'pending',   shots:6, rating:4.7, reviews:7,  hue:198, seller:'customer',desc:'Lady-driven, garage kept. All four tyres replaced this year, tracker installed.'}
+];
+
+let INQ = [
+  {id:1, who:'Rahul Khan',    car:1, msg:'Is this still available? I can visit the showroom this weekend if so.',      ago:'2 hours ago',  status:'pending',   unread:true},
+  {id:2, who:'Priya Mehta',   car:2, msg:'Can I come see it today around 5 pm? Also is the price negotiable?',        ago:'5 hours ago',  status:'pending',   unread:true},
+  {id:3, who:'Vikram Suri',   car:3, msg:'What is your best price for cash payment? Ready to close this week.',       ago:'1 day ago',    status:'interested',unread:true},
+  {id:4, who:'Ayesha Noor',   car:5, msg:'Does it have a genuine service history? Any accident record?',              ago:'2 days ago',   status:'contacted', unread:false},
+  {id:5, who:'Bilal Ahmed',   car:1, msg:'Do you handle bank financing or leasing on this vehicle?',                  ago:'3 days ago',   status:'contacted', unread:false},
+  {id:6, who:'Sana Tariq',    car:7, msg:'Is the Sportage sold already? Let me know if the deal falls through.',      ago:'6 days ago',   status:'not_interested', unread:false}
+];
+
+const INQ_LABEL = {pending:'Pending', contacted:'Contacted', interested:'Interested', not_interested:'Not interested'};
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+// South Asian digit grouping: 14500000 -> 1,45,00,000
+function money(n){
+  const s = String(n);
+  if(s.length <= 3) return s;
+  const last3 = s.slice(-3);
+  const rest  = s.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+  return rest + ',' + last3;
+}
+const km   = n => n.toLocaleString('en-US');
+const car  = id => CARS.find(c => c.id === id);
+const title= c => `${c.make} ${c.model}`;
+const stars= r => '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
+const initials = n => n.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+function statusBadge(s){
+  const m = {available:['ok','Available'], pending:['warn','Pending sale'], sold:['gone','Sold']};
+  const [k,t] = m[s];
+  return `<span class="badge badge--${k}">${t}</span>`;
+}
+
+/* Car artwork — silhouette derived from the Awan Cars mark.
+   Keeps the prototype image-free so nothing loads broken. */
+function carArt(c, tall, shot){
+  const s = shot || 0;
+  const h = c.hue + s * 7;
+  const uid = String(c.id) + '_' + s;
+  return `<svg viewBox="0 0 400 ${tall?250:225}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${title(c)}">
+    <defs>
+      <linearGradient id="bgg${uid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="hsl(${h} 20% 28%)"/><stop offset="1" stop-color="hsl(${h} 26% 13%)"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="${tall?250:225}" fill="url(#bgg${uid})"/>
+    <ellipse cx="200" cy="${tall?205:185}" rx="150" ry="16" fill="#000" opacity=".28"/>
+    <g transform="translate(-32,${tall?-98:-112}) scale(.88)">
+      <path d="M96 280 C101 265,114 258,130 256 L182 253 C197 236,216 221,245 214
+               C283 205,319 209,348 225 C366 235,382 245,402 249 L412 251
+               C426 253,433 262,431 277 C429 286,422 292,411 292 L392 292
+               C390 277,376 265,358 265 C340 265,326 277,324 292 L210 292
+               C208 277,194 265,176 265 C158 265,144 277,142 292 L116 292
+               C103 292,96 287,96 280 Z" fill="#F9FAFB"/>
+      <path d="M322 209 C340 212,354 218,366 227 C382 238,394 246,410 249
+               C424 251,431 262,429 277 C427 286,420 292,411 292 L392 292
+               C390 279,380 267,366 265 L358 265 C348 246,336 226,322 209 Z" fill="var(--brand)"/>
+      <path d="M230 226 C258 215,292 213,318 220 C302 231,290 244,283 254 L196 254
+               C205 243,216 233,230 226 Z" fill="hsl(${h} 24% 18%)"/>
+      <circle cx="176" cy="294" r="27" fill="hsl(${h} 26% 11%)" stroke="#F9FAFB" stroke-width="7"/>
+      <circle cx="358" cy="294" r="27" fill="hsl(${h} 26% 11%)" stroke="#F9FAFB" stroke-width="7"/>
+      <circle cx="176" cy="294" r="8" fill="var(--brand)"/>
+      <circle cx="358" cy="294" r="8" fill="var(--brand)"/>
+    </g>
+  </svg>`;
+}
+
+/* The signature spec cluster */
+function cluster(c){
+  return `<div class="cluster">
+    <div><span class="k">Year</span><span class="v">${c.yr}</span></div>
+    <div><span class="k">Odometer</span><span class="v">${km(c.km)} km</span></div>
+    <div><span class="k">Gearbox</span><span class="v">${c.tr.slice(0,4)}</span></div>
+    <div><span class="k">Fuel</span><span class="v">${c.fuel}</span></div>
+  </div>`;
+}
+
+/* ================================================================
+   STATE
+   ================================================================ */
+const S = {
+  device:'desktop',
+  role:'customer',
+  screen:'browse',
+  carId:null,
+  shot:0,
+  step:1,
+  q:'',
+  sortBy:'newest',
+  filters:{max:null, tr:'', fuel:''},
+  tblSort:{key:'id', dir:'asc'},
+  inqFilter:'all',
+  draft:{}
+};
+
+/* ================================================================
+   NAVIGATION MODEL — §Information Architecture
+   ================================================================ */
+const NAV = {
+  customer:[
+    {id:'browse',    label:'Browse cars',  icon:'car',   tab:'Home'},
+    {id:'listings',  label:'My listings',  icon:'grid',  tab:'Listings'},
+    {id:'sell',      label:'Sell a car',   icon:'plus',  tab:'Sell'},
+    {id:'inquiries', label:'Inquiries',    icon:'chat',  tab:'Inbox'},
+    {id:'account',   label:'Account',      icon:'user',  tab:'Account'}
+  ],
+  staff:[
+    {id:'inventory', label:'Inventory',    icon:'grid',  tab:'Stock'},
+    {id:'sell',      label:'Add a car',    icon:'plus',  tab:'Add'},
+    {id:'browse',    label:'Marketplace',  icon:'car',   tab:'Market'},
+    {id:'inquiries', label:'Inquiries',    icon:'chat',  tab:'Inbox'},
+    {id:'account',   label:'Account',      icon:'user',  tab:'Account'}
+  ],
+  admin:[
+    {id:'dashboard', label:'Dashboard',    icon:'chart', tab:'Home'},
+    {id:'inventory', label:'Inventory',    icon:'grid',  tab:'Stock'},
+    {id:'inquiries', label:'Inquiries',    icon:'chat',  tab:'Inbox'},
+    {id:'team',      label:'Team',         icon:'users', tab:'Team'},
+    {id:'settings',  label:'Settings',     icon:'cog',   tab:'Settings'}
+  ]
+};
+const HOME = {customer:'browse', staff:'inventory', admin:'dashboard'};
+const WHO  = {customer:{n:'Rahul Khan', i:'RK'}, staff:{n:'Priya Mehta', i:'PM'}, admin:{n:'Vikram Suri', i:'VS'}};
+
+const unreadCount = () => INQ.filter(i => i.unread).length;
+
+/* ================================================================
+   SHELL RENDER
+   ================================================================ */
+function renderNav(){
+  const items = NAV[S.role];
+  document.getElementById('sideNav').innerHTML = items.map(n => `
+    <button class="navlink" data-nav="${n.id}" ${S.screen===n.id?'aria-current="page"':''}>
+      ${svg(n.icon)}${n.label}
+      ${n.id==='inquiries' && unreadCount() ? `<span class="count">${unreadCount()}</span>` : ''}
+    </button>`).join('');
+
+  document.getElementById('tabBar').innerHTML = items.map(n => `
+    <button data-nav="${n.id}" ${S.screen===n.id?'aria-current="page"':''}>
+      ${svg(n.icon)}<span>${n.tab}</span>
+      ${n.id==='inquiries' && unreadCount() ? `<span class="badge">${unreadCount()}</span>` : ''}
+    </button>`).join('');
+
+  document.getElementById('logoutIcon').innerHTML = svg('logout');
+  document.getElementById('topAvatar').textContent = WHO[S.role].i;
+}
+
+function renderMobileHeader(){
+  const h = document.getElementById('mHeader');
+  const sub = {
+    browse:'Browse 500+ verified cars', listings:'Cars you have listed',
+    sell:'List your car in 4 steps', inquiries:`${unreadCount()} new messages`,
+    account:WHO[S.role].n, inventory:`${CARS.length} vehicles in stock`,
+    dashboard:'This month at a glance', team:'Staff and access',
+    settings:'Showroom configuration', detail:'', success:''
+  }[S.screen] || '';
+
+  if(S.screen === 'detail'){
+    h.innerHTML = `<button class="back" data-nav="back" aria-label="Go back">${svg('back')}</button>
+      <div><div class="nm">${title(car(S.carId))}</div><div class="sub">${car(S.carId).yr} · ${car(S.carId).col}</div></div>`;
+  } else {
+    h.innerHTML = `<div class="logo-mark">AC</div>
+      <div><div class="nm">Awan Cars</div><div class="sub">Jauharabad · ${sub}</div></div>`;
+  }
+}
+</script>
+
+<script>
+/* ================================================================
+   SCREEN 1 — Browse cars (§Screen 1)
+   ================================================================ */
+function visibleCars(){
+  let list = CARS.filter(c => c.status !== 'sold' || S.role !== 'customer');
+  const q = S.q.trim().toLowerCase();
+  if(q) list = list.filter(c => (title(c) + ' ' + c.yr + ' ' + c.fuel).toLowerCase().includes(q));
+  if(S.filters.max)  list = list.filter(c => c.price <= S.filters.max);
+  if(S.filters.tr)   list = list.filter(c => c.tr === S.filters.tr);
+  if(S.filters.fuel) list = list.filter(c => c.fuel === S.filters.fuel);
+
+  const by = {
+    newest:  (a,b) => b.yr - a.yr,
+    lowest:  (a,b) => a.price - b.price,
+    highest: (a,b) => b.price - a.price,
+    lowkm:   (a,b) => a.km - b.km
+  }[S.sortBy];
+  return [...list].sort(by);
+}
+
+function activeFilters(){
+  const f = [];
+  if(S.filters.max)  f.push({k:'max',  t:`Under ${CUR} ${money(S.filters.max)}`});
+  if(S.filters.tr)   f.push({k:'tr',   t:S.filters.tr});
+  if(S.filters.fuel) f.push({k:'fuel', t:S.filters.fuel});
+  return f;
+}
+
+function carCard(c){
+  return `<button class="car" data-car="${c.id}">
+    <div class="car__art">
+      ${carArt(c)}
+      ${statusBadge(c.status)}
+      <span class="shots">${c.shots} photos</span>
+    </div>
+    <div class="car__body">
+      <div>
+        <div class="car__title">${title(c)}</div>
+        <div class="small muted">${c.col} · ${c.cond} condition</div>
+      </div>
+      ${cluster(c)}
+      <div class="car__price"><span class="cur">${CUR}</span>${money(c.price)}</div>
+      <div class="car__foot">
+        <span class="stars" aria-label="${c.rating} out of 5">${stars(c.rating)}</span>
+        <span class="tiny muted">${c.rating} · ${c.reviews} reviews</span>
+      </div>
+    </div>
+  </button>`;
+}
+
+function screenBrowse(){
+  const list = visibleCars(), f = activeFilters();
+  return `
+    <div class="page-head">
+      <div>
+        <h1 class="h1">Browse cars</h1>
+        <p class="sub">${list.length} vehicle${list.length===1?'':'s'} ready to view at Jauharabad</p>
+      </div>
+      ${S.role==='customer' ? `<div class="actions"><button class="btn btn--primary" data-nav="sell">${svg('plus')}Sell your car</button></div>` : ''}
+    </div>
+
+    <div class="toolbar">
+      <div class="searchbox">
+        ${svg('search')}
+        <input id="browseSearch" type="search" placeholder="Search make or model" value="${S.q}" aria-label="Search cars">
+      </div>
+      <button class="btn btn--ghost btn--sm filter-btn" data-act="filters">
+        ${svg('filter')}Filters${f.length ? `<span class="n">${f.length}</span>` : ''}
+      </button>
+      <select class="select-sm" id="sortSel" aria-label="Sort cars">
+        <option value="newest"  ${S.sortBy==='newest'?'selected':''}>Newest first</option>
+        <option value="lowest"  ${S.sortBy==='lowest'?'selected':''}>Price: low to high</option>
+        <option value="highest" ${S.sortBy==='highest'?'selected':''}>Price: high to low</option>
+        <option value="lowkm"   ${S.sortBy==='lowkm'?'selected':''}>Lowest mileage</option>
+      </select>
+    </div>
+
+    ${f.length ? `<div class="pills">${f.map(x =>
+      `<span class="pill">${x.t}<button data-clear="${x.k}" aria-label="Remove ${x.t} filter">×</button></span>`).join('')}
+      <button class="btn btn--quiet btn--sm" data-clear="all">Clear all</button></div>` : ''}
+
+    ${list.length ? `<div class="car-grid">${list.map(carCard).join('')}</div>`
+    : `<div class="card empty">
+        ${svg('box')}
+        <h3>No cars match those filters</h3>
+        <p>Try widening the price range, or clear the filters to see everything in stock.</p>
+        <button class="btn btn--ghost" data-clear="all">Clear filters</button>
+      </div>`}`;
+}
+
+/* ================================================================
+   SCREEN 2 — Car detail (§Screen 2)
+   ================================================================ */
+function screenDetail(){
+  const c = car(S.carId);
+  const spec = [
+    ['Make', c.make], ['Model', c.model], ['Year', c.yr],
+    ['Odometer', km(c.km) + ' km'], ['Transmission', c.tr], ['Fuel type', c.fuel],
+    ['Exterior colour', c.col], ['Condition', c.cond], ['Stock number', 'AC-' + String(1000 + c.id)]
+  ];
+  return `
+    <div class="page-head" style="display:${S.device==='mobile'?'none':'flex'}">
+      <button class="btn btn--quiet" data-nav="back">${svg('back')}Back to results</button>
+    </div>
+
+    <div class="detail">
+      <div>
+        <div class="carousel">
+          <div class="carousel__stage" id="shotStage">
+            ${carArt(c, true, S.shot)}
+            <button class="carousel__nav prev" data-shot="-1" aria-label="Previous photo">${svg('chevL')}</button>
+            <button class="carousel__nav next" data-shot="1"  aria-label="Next photo">${svg('chevR')}</button>
+          </div>
+          <div class="dots" role="tablist" aria-label="Photos">
+            ${Array.from({length:c.shots}, (_,i) =>
+              `<button data-goshot="${i}" aria-current="${i===S.shot}" aria-label="Photo ${i+1}"></button>`).join('')}
+          </div>
+        </div>
+        <div class="thumbs">
+          ${Array.from({length:c.shots}, (_,i) =>
+            `<button data-goshot="${i}" aria-current="${i===S.shot}" aria-label="Photo ${i+1}">${carArt(c, false, i)}</button>`).join('')}
+        </div>
+
+        <div class="card pad" style="margin-top:24px">
+          <h2 class="h2" style="margin-bottom:4px">${title(c)}</h2>
+          <p class="muted" style="margin-bottom:16px">
+            <span class="stars">${stars(c.rating)}</span>
+            <span class="small">${c.rating} from ${c.reviews} reviews</span>
+          </p>
+          ${cluster(c)}
+
+          <details class="disclose" open style="margin-top:20px">
+            <summary>Full specification</summary>
+            <div><table class="spec-table">
+              ${spec.map(([k,v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('')}
+            </table></div>
+          </details>
+
+          <details class="disclose" open>
+            <summary>Seller description</summary>
+            <div><p>${c.desc}</p></div>
+          </details>
+
+          <details class="disclose">
+            <summary>Inspection and paperwork</summary>
+            <div>
+              <ul class="small" style="display:grid;gap:8px;color:var(--ink-700)">
+                <li>✓ 42-point mechanical inspection completed</li>
+                <li>✓ Registration book verified and transferable</li>
+                <li>✓ No outstanding lease or bank charge</li>
+                <li>✓ Odometer reading cross-checked against service records</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="sticky-cta">
+        <div class="card" style="overflow:hidden">
+          <div class="price-block">
+            <div class="cur">${CUR}</div>
+            <div class="amt">${money(c.price)}</div>
+            <div class="note">${{available:'Available now',pending:'Pending sale',sold:'Sold'}[c.status]} · price negotiable</div>
+          </div>
+          <div class="pad" style="display:grid;gap:10px">
+            <button class="btn btn--primary btn--block" data-act="contact">${svg('phone')}Contact showroom</button>
+            <button class="btn btn--ghost btn--block" data-act="wish">${svg('heart')}Save to wishlist</button>
+            <div class="note" style="margin-top:6px">
+              ${svg('info')}<span>Usually replies within 2 hours during business hours, 10 am to 8 pm.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ================================================================
+   SCREEN 3 — Sell / add a car, 4-step wizard (§Screen 3)
+   ================================================================ */
+const MAKES = ['Toyota','Suzuki','Honda','Hyundai','Kia','MG','Changan','Nissan'];
+const MODELS = {
+  Toyota:['Corolla Altis','Yaris','Fortuner','Hilux Revo','Prius'],
+  Suzuki:['Alto','Cultus','Swift','Wagon R','Every'],
+  Honda:['City','Civic','BR-V','HR-V'],
+  Hyundai:['Elantra','Tucson','Sonata','Porter'],
+  Kia:['Picanto','Sportage','Sorento','Stonic'],
+  MG:['HS','ZS EV'], Changan:['Alsvin','Oshan X7'], Nissan:['Dayz','Note']
+};
+
+function screenSell(){
+  const d = S.draft, step = S.step;
+  const head = `
+    <div class="wizard">
+      <div class="steps">${[1,2,3,4].map(i => `<div class="${i<=step?'on':''}"></div>`).join('')}</div>
+      <div class="step-meta"><span>Step ${step} of 4</span><span>${['Basics','Details','Photos','Price'][step-1]}</span></div>`;
+
+  let body = '';
+
+  if(step === 1){
+    body = `
+      <h2 class="q">What are you selling?</h2>
+      <p class="q-sub">Start with the make and model. You can save and come back at any point.</p>
+      <div class="grid-2">
+        <label class="field" id="f-make"><span class="lab">Make</span>
+          <select id="in-make">
+            <option value="">Select make</option>
+            ${MAKES.map(m => `<option ${d.make===m?'selected':''}>${m}</option>`).join('')}
+          </select>
+          <span class="errmsg">Choose a make to continue</span>
+        </label>
+        <label class="field" id="f-model"><span class="lab">Model</span>
+          <select id="in-model" ${d.make?'':'disabled'}>
+            <option value="">${d.make ? 'Select model' : 'Choose a make first'}</option>
+            ${(MODELS[d.make]||[]).map(m => `<option ${d.model===m?'selected':''}>${m}</option>`).join('')}
+          </select>
+          <span class="errmsg">Choose a model to continue</span>
+        </label>
+      </div>
+      <label class="field" id="f-yr"><span class="lab">Model year</span>
+        <select id="in-yr">
+          <option value="">Select year</option>
+          ${Array.from({length:16},(_,i)=>2026-i).map(y => `<option ${String(d.yr)===String(y)?'selected':''}>${y}</option>`).join('')}
+        </select>
+        <span class="errmsg">Choose the model year</span>
+      </label>`;
+  }
+
+  if(step === 2){
+    body = `
+      <h2 class="q">Tell us about its condition</h2>
+      <p class="q-sub">Buyers ask about these four things first. Being accurate here cuts down on wasted visits.</p>
+      <div class="grid-2">
+        <label class="field"><span class="lab">Odometer reading</span>
+          <input id="in-km" type="number" inputmode="numeric" placeholder="e.g. 45000" value="${d.km||''}">
+          <span class="hint">In kilometres</span>
+        </label>
+        <label class="field"><span class="lab">Exterior colour</span>
+          <input id="in-col" type="text" placeholder="e.g. Pearl White" value="${d.col||''}">
+        </label>
+        <label class="field"><span class="lab">Transmission</span>
+          <select id="in-tr">
+            <option ${d.tr==='Automatic'?'selected':''}>Automatic</option>
+            <option ${d.tr==='Manual'?'selected':''}>Manual</option>
+          </select>
+        </label>
+        <label class="field"><span class="lab">Fuel type</span>
+          <select id="in-fuel">
+            ${['Petrol','Diesel','Hybrid','Electric'].map(f => `<option ${d.fuel===f?'selected':''}>${f}</option>`).join('')}
+          </select>
+        </label>
+      </div>
+      <div class="field"><span class="lab">Overall condition</span>
+        <div class="radio-row">
+          ${[['Excellent','No mechanical faults, paint and interior near original'],
+             ['Good','Runs well, normal wear for its age and mileage'],
+             ['Fair','Drives fine but needs cosmetic or mechanical attention']]
+            .map(([v,desc]) => `<label><input type="radio" name="cond" value="${v}" ${d.cond===v?'checked':''}>
+              <span><span class="rl">${v}</span><br><span class="rd">${desc}</span></span></label>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  if(step === 3){
+    const n = d.photos || 3;
+    body = `
+      <h2 class="q">Add photos</h2>
+      <p class="q-sub">Listings with six or more photos get roughly three times the inquiries. Up to eight.</p>
+      <div class="dropzone">
+        ${svg('upload')}
+        <div style="font-weight:600;margin-bottom:4px">Drop photos here</div>
+        <p class="small muted" style="margin-bottom:14px">JPG or PNG, up to 5 MB each</p>
+        <button class="btn btn--ghost btn--sm" data-act="addphoto">Choose files</button>
+      </div>
+      <div class="photo-grid">
+        ${Array.from({length:8}, (_,i) => i < n
+          ? `<div class="photo-slot">${carArt({id:'p'+i, hue:206})}<span class="pin">${i===0?'COVER':i+1}</span></div>`
+          : `<div class="photo-slot empty"></div>`).join('')}
+      </div>
+      <p class="small muted" style="margin-top:12px">${n} of 8 added. Drag a photo to the first slot to make it the cover.</p>`;
+  }
+
+  if(step === 4){
+    body = `
+      <h2 class="q">Set your asking price</h2>
+      <p class="q-sub">Similar cars at this showroom sit between ${CUR} 42,00,000 and ${CUR} 52,00,000.</p>
+      <label class="field" id="f-price"><span class="lab">Asking price (${CUR})</span>
+        <input id="in-price" type="number" inputmode="numeric" placeholder="4500000" value="${d.price||''}">
+        <span class="hint">Buyers see this as ${CUR} ${money(d.price || 4500000)}</span>
+        <span class="errmsg">Enter an asking price</span>
+      </label>
+      ${S.role !== 'customer' ? `
+      <label class="field"><span class="lab">Listing status</span>
+        <select id="in-status">
+          <option value="available">Available</option>
+          <option value="pending">Pending sale</option>
+        </select>
+        <span class="hint">Staff only. Customers submit for review.</span>
+      </label>` : ''}
+      <div class="card pad" style="background:var(--surface-2);margin-top:8px">
+        <h3 class="h3" style="margin-bottom:12px">Review</h3>
+        <table class="spec-table">
+          <tr><th scope="row">Vehicle</th><td>${d.make||'—'} ${d.model||''} ${d.yr||''}</td></tr>
+          <tr><th scope="row">Odometer</th><td>${d.km ? km(+d.km)+' km' : '—'}</td></tr>
+          <tr><th scope="row">Gearbox / fuel</th><td>${d.tr||'—'} · ${d.fuel||'—'}</td></tr>
+          <tr><th scope="row">Condition</th><td>${d.cond||'—'}</td></tr>
+          <tr><th scope="row">Photos</th><td>${d.photos||3}</td></tr>
+        </table>
+      </div>`;
+  }
+
+  const foot = `
+      <div class="wizard-foot">
+        ${step > 1 ? `<button class="btn btn--ghost" data-step="-1">${svg('chevL')}Back</button>` : ''}
+        ${step < 4
+          ? `<button class="btn btn--primary" data-step="1">Continue${svg('chevR')}</button>`
+          : `<button class="btn btn--primary" data-act="publish">${svg('check')}${S.role==='customer'?'Submit for review':'Publish listing'}</button>`}
+      </div>
+    </div>`;
+
+  return head + body + foot;
+}
+
+/* Success confirmation (§Flow 1 step 5 / §Flow 2 step 4) */
+function screenSuccess(){
+  const isInq = S.successKind === 'inquiry';
+  return `<div class="success">
+    <div class="tick">${svg('check')}</div>
+    <h1 class="h1" style="margin-bottom:8px">${isInq ? 'Message sent' : 'Listing submitted'}</h1>
+    <p class="muted" style="margin-bottom:24px">
+      ${isInq
+        ? 'Awan Cars will call you back within 24 hours. Your reference number is <span class="num">INQ-4821</span>.'
+        : 'The showroom will review your car and publish it, usually within one working day. You can edit it any time from My listings.'}
+    </p>
+    <div style="display:grid;gap:10px;max-width:300px;margin:0 auto">
+      <button class="btn btn--primary btn--block" data-nav="${isInq?'browse':'listings'}">
+        ${isInq ? 'Keep browsing' : 'View my listings'}
+      </button>
+      <button class="btn btn--ghost btn--block" data-nav="inquiries">Go to inbox</button>
+    </div>
+  </div>`;
+}
+
+/* My listings — customer's own cars (§Flow 2 step 2) */
+function screenListings(){
+  const mine = CARS.filter(c => c.seller === 'customer');
+  return `
+    <div class="page-head">
+      <div><h1 class="h1">My listings</h1><p class="sub">Cars you have posted to Awan Cars</p></div>
+      <div class="actions"><button class="btn btn--primary" data-nav="sell">${svg('plus')}Add a car</button></div>
+    </div>
+    ${mine.length ? `<div class="car-grid">${mine.map(carCard).join('')}</div>` : `
+      <div class="card empty">${svg('car')}
+        <h3>You have not listed a car yet</h3>
+        <p>Post your car in four short steps and start receiving inquiries from buyers in Jauharabad.</p>
+        <button class="btn btn--primary" data-nav="sell">List your first car</button>
+      </div>`}`;
+}
+</script>
+
+<script>
+/* ================================================================
+   SCREEN 4 — Inventory (§Screen 4)
+   ================================================================ */
+function screenInventory(){
+  const counts = {
+    total: CARS.length,
+    available: CARS.filter(c => c.status==='available').length,
+    pending: CARS.filter(c => c.status==='pending').length,
+    sold: CARS.filter(c => c.status==='sold').length
+  };
+  const q = S.q.trim().toLowerCase();
+  let rows = CARS.filter(c => !q || title(c).toLowerCase().includes(q));
+  const {key,dir} = S.tblSort, sign = dir==='asc' ? 1 : -1;
+  rows.sort((a,b) => {
+    const va = key==='name' ? title(a) : a[key], vb = key==='name' ? title(b) : b[key];
+    return (va > vb ? 1 : va < vb ? -1 : 0) * sign;
+  });
+
+  const th = (k,l) => `<th ${S.tblSort.key===k?`aria-sort="${dir==='asc'?'ascending':'descending'}"`:''}>
+    <button data-sort="${k}">${l}</button></th>`;
+
+  return `
+    <div class="page-head">
+      <div><h1 class="h1">Showroom inventory</h1><p class="sub">Every vehicle on the floor, live</p></div>
+      <div class="actions">
+        <button class="btn btn--ghost" data-act="export">Export CSV</button>
+        <button class="btn btn--primary" data-nav="sell">${svg('plus')}Add a car</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      ${[['Total stock',counts.total,'var(--ink)',''],
+         ['Available',counts.available,'var(--ok)','+4 this week'],
+         ['Pending sale',counts.pending,'var(--warn)','2 awaiting payment'],
+         ['Sold this month',counts.sold,'var(--muted-2)','+1 vs last month']]
+        .map(([k,v,c,d]) => `<div class="stat" style="--accent:${c}">
+          <div class="k">${k}</div><div class="v">${v}</div>
+          ${d?`<div class="d up">${d}</div>`:''}</div>`).join('')}
+    </div>
+
+    <div class="toolbar">
+      <div class="searchbox">${svg('search')}
+        <input id="invSearch" type="search" placeholder="Search by make or model" value="${S.q}" aria-label="Search inventory">
+      </div>
+      <select class="select-sm" id="invStatus" aria-label="Filter by status">
+        <option>All statuses</option><option>Available</option><option>Pending</option><option>Sold</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr>
+          ${th('id','#')}${th('name','Vehicle')}${th('yr','Year')}${th('price','Price')}
+          <th>Status</th><th>Inquiries</th><th><span class="sr">Actions</span></th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((c,i) => {
+            const n = INQ.filter(x => x.car === c.id).length;
+            return `<tr data-car="${c.id}" tabindex="0">
+              <td data-col="idx" class="idx">${String(i+1).padStart(2,'0')}</td>
+              <td data-col="name"><div class="name">${title(c)}</div><div class="sub">${c.col} · ${km(c.km)} km</div></td>
+              <td data-col="year" class="num">${c.yr}</td>
+              <td data-col="price" class="num">${CUR} ${money(c.price)}</td>
+              <td data-col="status">${statusBadge(c.status)}</td>
+              <td data-col="inq" class="num">${n ? n + ' open' : '—'}</td>
+              <td data-col="act"><div class="rowact">
+                <button class="icon-btn" data-edit="${c.id}" aria-label="Edit ${title(c)}">${svg('edit')}</button>
+                <button class="icon-btn" data-del="${c.id}" aria-label="Delete ${title(c)}">${svg('trash')}</button>
+              </div></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny muted" style="margin-top:12px">Select a row to open the vehicle. Hover a row for quick edit and delete.</p>`;
+}
+
+/* ================================================================
+   SCREEN 5 — Inquiries (§Screen 5)
+   ================================================================ */
+function screenInquiries(){
+  const list = S.inqFilter === 'all' ? INQ : INQ.filter(i => i.status === S.inqFilter);
+  return `
+    <div class="page-head">
+      <div>
+        <h1 class="h1">Inquiries ${unreadCount() ? `<span class="badge badge--new" style="vertical-align:middle;margin-left:6px">${unreadCount()} new</span>` : ''}</h1>
+        <p class="sub">Buyer messages across every listing</p>
+      </div>
+      ${unreadCount() ? `<div class="actions"><button class="btn btn--ghost" data-act="readall">Mark all read</button></div>` : ''}
+    </div>
+
+    <div class="toolbar">
+      <select class="select-sm" id="inqFilter" aria-label="Filter inquiries by status">
+        <option value="all" ${S.inqFilter==='all'?'selected':''}>All inquiries</option>
+        ${Object.entries(INQ_LABEL).map(([k,v]) =>
+          `<option value="${k}" ${S.inqFilter===k?'selected':''}>${v}</option>`).join('')}
+      </select>
+      <span class="small muted">${list.length} shown</span>
+    </div>
+
+    ${list.length ? list.map(q => {
+      const c = car(q.car);
+      const tone = {pending:'warn', contacted:'gone', interested:'ok', not_interested:'gone'}[q.status];
+      return `<article class="inq ${q.unread?'unread':''}">
+        <div class="inq__av">${initials(q.who)}</div>
+        <div class="inq__b">
+          <div class="inq__top">
+            <span class="inq__nm">${q.who}</span>
+            <span class="badge badge--${tone}">${INQ_LABEL[q.status]}</span>
+            ${q.unread ? '<span class="badge badge--new">New</span>' : ''}
+            <span class="inq__time">${q.ago}</span>
+          </div>
+          <div class="inq__about">About ${title(c)} · ${CUR} ${money(c.price)}</div>
+          <p class="inq__msg">${q.msg}</p>
+          <div class="inq__foot">
+            <button class="btn btn--dark btn--sm" data-reply="${q.id}">Reply</button>
+            <button class="btn btn--ghost btn--sm" data-contacted="${q.id}">Mark contacted</button>
+            <button class="btn btn--quiet btn--sm" data-car="${c.id}">View car</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('') : `
+      <div class="card empty">${svg('chat')}
+        <h3>Nothing here yet</h3>
+        <p>No inquiries match this filter. Switch to “All inquiries” to see the full inbox.</p>
+      </div>`}`;
+}
+
+/* ================================================================
+   Owner dashboard + reports (§Flow 4)
+   ================================================================ */
+function screenDashboard(){
+  const c = {
+    total: CARS.length,
+    avail: CARS.filter(x=>x.status==='available').length,
+    pend:  CARS.filter(x=>x.status==='pending').length,
+    sold:  CARS.filter(x=>x.status==='sold').length
+  };
+  const months = [['Feb',18],['Mar',24],['Apr',21],['May',33],['Jun',29],['Jul',41]];
+  const peak = Math.max(...months.map(m=>m[1]));
+  const mix = [['Available',c.avail,'var(--ok)'],['Pending sale',c.pend,'var(--warn)'],['Sold',c.sold,'var(--muted-2)']];
+
+  return `
+    <div class="page-head">
+      <div><h1 class="h1">Good morning, Vikram</h1><p class="sub">Awan Cars, Jauharabad · July 2026</p></div>
+      <div class="actions"><button class="btn btn--primary" data-nav="inventory">${svg('grid')}Open inventory</button></div>
+    </div>
+
+    <div class="stat-grid">
+      ${[['Cars in showroom',c.total,'var(--ink)','',  'inventory'],
+         ['Available now',c.avail,'var(--ok)','+4 this week','inventory'],
+         ['Pending sale',c.pend,'var(--warn)','','inventory'],
+         ['Inquiries this month',INQ.length,'var(--brand)','+38% vs June','inquiries'],
+         ['Sold this month',c.sold,'var(--blue)','','inventory']]
+        .map(([k,v,col,d,go]) => `<button class="stat" style="--accent:${col}" data-nav="${go}">
+          <div class="k">${k}</div><div class="v">${v}</div>
+          ${d?`<div class="d up">${d}</div>`:''}</button>`).join('')}
+    </div>
+
+    <div class="chart-grid">
+      <div class="card pad">
+        <h2 class="h3" style="margin-bottom:2px">Inquiries per month</h2>
+        <p class="small muted" style="margin-bottom:8px">Last six months</p>
+        <div class="bars">
+          ${months.map(([m,v]) => `<div class="b">
+            <div class="bar" style="height:${Math.round(v/peak*100)}%"><span>${v}</span></div>
+            <div class="lbl">${m}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="card pad">
+        <h2 class="h3" style="margin-bottom:2px">Stock status</h2>
+        <p class="small muted">Share of ${c.total} vehicles</p>
+        <div style="display:flex;height:12px;border-radius:999px;overflow:hidden;margin-top:20px;gap:2px">
+          ${mix.map(([,v,col]) => `<div style="flex:${v};background:${col}"></div>`).join('')}
+        </div>
+        <div class="legend">
+          ${mix.map(([k,v,col]) => `<div><i style="background:${col}"></i>${k}<b>${v}</b></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function screenTeam(){
+  const staff = [
+    ['Priya Mehta','Showroom staff','Active today'],
+    ['Imran Awan','Showroom staff','Active 2 days ago'],
+    ['Vikram Suri','Owner / admin','You']
+  ];
+  return `
+    <div class="page-head">
+      <div><h1 class="h1">Team</h1><p class="sub">Who can access this showroom</p></div>
+      <div class="actions"><button class="btn btn--primary" data-act="invite">${svg('plus')}Invite a member</button></div>
+    </div>
+    <div class="table-wrap"><table class="tbl">
+      <thead><tr><th>Name</th><th>Role</th><th>Last seen</th><th><span class="sr">Actions</span></th></tr></thead>
+      <tbody>${staff.map(([n,r,l]) => `<tr>
+        <td data-col="name"><div class="name">${n}</div></td>
+        <td data-col="year">${r}</td>
+        <td data-col="price" class="small muted">${l}</td>
+        <td data-col="act"><div class="rowact"><button class="icon-btn" aria-label="Edit ${n}">${svg('edit')}</button></div></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+function screenSettings(){
+  return `
+    <div class="page-head"><div>
+      <h1 class="h1">Showroom settings</h1>
+      <p class="sub">Branding applied across the app, emails and splash screen</p>
+    </div></div>
+    <div class="card pad" style="max-width:620px">
+      <label class="field"><span class="lab">Showroom name</span><input type="text" value="Awan Cars"></label>
+      <label class="field"><span class="lab">City</span><input type="text" value="Jauharabad"></label>
+      <label class="field"><span class="lab">Contact number</span><input type="tel" value="+92 300 1234567"></label>
+      <div class="field"><span class="lab">Logo</span>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="logo-mark" style="width:56px;height:56px;border-radius:14px;font-size:19px">AC</div>
+          <button class="btn btn--ghost btn--sm">${svg('upload')}Replace logo</button>
+          <span class="tiny muted">PNG, 256×256</span>
+        </div>
+      </div>
+      <div class="field"><span class="lab">Primary colour</span>
+        <div style="display:flex;gap:8px">
+          ${['#DC2626','#2563EB','#059669','#1F2937'].map(h =>
+            `<button class="icon-btn" data-brand="${h}" style="background:${h};border-radius:50%;width:38px;height:38px" aria-label="Use ${h}"></button>`).join('')}
+        </div>
+        <span class="hint">Changes the header, buttons and splash screen for every user of this showroom.</span>
+      </div>
+      <button class="btn btn--primary" data-act="save">Save changes</button>
+    </div>`;
+}
+
+function screenAccount(){
+  const w = WHO[S.role];
+  return `
+    <div class="page-head"><div><h1 class="h1">Account</h1><p class="sub">Your profile and preferences</p></div></div>
+    <div class="card pad" style="max-width:560px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+        <div class="avatar" style="width:60px;height:60px;font-size:20px">${w.i}</div>
+        <div><div class="h3">${w.n}</div>
+        <div class="small muted">${{customer:'Customer',staff:'Showroom staff',admin:'Owner / admin'}[S.role]} · Jauharabad</div></div>
+      </div>
+      <label class="field"><span class="lab">Full name</span><input type="text" value="${w.n}"></label>
+      <label class="field"><span class="lab">Mobile number</span><input type="tel" value="+92 300 7654321"></label>
+      <label class="field"><span class="lab">Preferred callback time</span>
+        <select><option>Morning, 10 am to 1 pm</option><option selected>Evening, 5 pm to 8 pm</option></select>
+      </label>
+      <button class="btn btn--primary">Save changes</button>
+    </div>`;
+}
+
+function paintShot(){
+  const c = car(S.carId);
+  const st = document.getElementById('shotStage');
+  if(st) st.querySelector('svg').outerHTML = carArt(c, true, S.shot);
+  document.querySelectorAll('[data-goshot]').forEach(d =>
+    d.setAttribute('aria-current', +d.dataset.goshot === S.shot));
+}
+
+/* ================================================================
+   ROUTER
+   ================================================================ */
+const SCREENS = {
+  browse:screenBrowse, detail:screenDetail, sell:screenSell, listings:screenListings,
+  inventory:screenInventory, inquiries:screenInquiries, dashboard:screenDashboard,
+  team:screenTeam, settings:screenSettings, account:screenAccount, success:screenSuccess
+};
+
+function render(){
+  document.getElementById('content').innerHTML = (SCREENS[S.screen] || screenBrowse)();
+  renderNav();
+  renderMobileHeader();
+  document.getElementById('content').scrollTop = 0;
+}
+
+function go(screen){
+  if(screen === 'sell'){ S.step = 1; }
+  if(screen === 'browse' && S.screen === 'detail'){ /* keep filters */ }
+  S.screen = screen;
+  render();
+}
+
+/* ================================================================
+   MODALS
+   ================================================================ */
+const scrim = document.getElementById('scrim'), modal = document.getElementById('modal');
+function openModal(html){ modal.innerHTML = html; scrim.hidden = false;
+  const f = modal.querySelector('input,select,button'); if(f) f.focus(); }
+function closeModal(){ scrim.hidden = true; }
+
+function filterModal(){
+  const f = S.filters;
+  openModal(`
+    <div class="modal__hd"><h2 class="h3">Filters</h2>
+      <button class="icon-btn" data-act="close" aria-label="Close" style="margin-left:auto">✕</button></div>
+    <div class="modal__bd">
+      <label class="field"><span class="lab">Maximum price</span>
+        <div class="range-row">
+          <input id="fMax" type="range" min="2000000" max="16000000" step="250000" value="${f.max||16000000}">
+        </div>
+        <span class="hint">Up to <span class="num" id="fMaxOut">${CUR} ${money(f.max||16000000)}</span></span>
+      </label>
+      <label class="field"><span class="lab">Transmission</span>
+        <select id="fTr"><option value="">Any</option>
+          <option ${f.tr==='Automatic'?'selected':''}>Automatic</option>
+          <option ${f.tr==='Manual'?'selected':''}>Manual</option></select>
+      </label>
+      <label class="field" style="margin-bottom:0"><span class="lab">Fuel type</span>
+        <select id="fFuel"><option value="">Any</option>
+          ${['Petrol','Diesel','Hybrid','Electric'].map(x => `<option ${f.fuel===x?'selected':''}>${x}</option>`).join('')}</select>
+      </label>
+    </div>
+    <div class="modal__ft">
+      <button class="btn btn--ghost" data-clear="all">Reset</button>
+      <button class="btn btn--primary" data-act="applyFilters">Show results</button>
+    </div>`);
+  const r = document.getElementById('fMax'), out = document.getElementById('fMaxOut');
+  r.addEventListener('input', () => out.textContent = `${CUR} ${money(+r.value)}`);
+}
+
+function contactModal(){
+  const c = car(S.carId);
+  openModal(`
+    <div class="modal__hd"><h2 class="h3">Contact Awan Cars</h2>
+      <button class="icon-btn" data-act="close" aria-label="Close" style="margin-left:auto">✕</button></div>
+    <div class="modal__bd">
+      <div class="note" style="margin-bottom:20px">${svg('info')}
+        <span>About <b>${title(c)}</b> · ${CUR} ${money(c.price)}</span></div>
+      <label class="field"><span class="lab">Your name</span><input type="text" value="Rahul Khan"></label>
+      <label class="field"><span class="lab">Mobile number</span><input type="tel" value="+92 300 7654321"></label>
+      <label class="field"><span class="lab">Best time to call</span>
+        <select><option>Morning, 10 am to 1 pm</option><option selected>Evening, 5 pm to 8 pm</option></select></label>
+      <label class="field" style="margin-bottom:0"><span class="lab">Message</span>
+        <textarea>Is this still available? I would like to arrange a viewing this weekend.</textarea></label>
+    </div>
+    <div class="modal__ft">
+      <button class="btn btn--ghost" data-act="close">Cancel</button>
+      <button class="btn btn--primary" data-act="sendInquiry">Send message</button>
+    </div>`);
+}
+
+function replyModal(id){
+  const q = INQ.find(x => x.id === id), c = car(q.car);
+  openModal(`
+    <div class="modal__hd"><h2 class="h3">Reply to ${q.who}</h2>
+      <button class="icon-btn" data-act="close" aria-label="Close" style="margin-left:auto">✕</button></div>
+    <div class="modal__bd">
+      <div class="inq__about" style="margin-bottom:8px">About ${title(c)}</div>
+      <p class="inq__msg" style="margin-bottom:20px">${q.msg}</p>
+      <label class="field"><span class="lab">Your reply</span>
+        <textarea>Yes, it is still available. You are welcome to visit between 10 am and 8 pm any day this week.</textarea></label>
+      <label class="field" style="margin-bottom:0"><span class="lab">Update status</span>
+        <select id="rStatus">${Object.entries(INQ_LABEL).map(([k,v]) =>
+          `<option value="${k}" ${q.status===k?'selected':''}>${v}</option>`).join('')}</select></label>
+    </div>
+    <div class="modal__ft">
+      <button class="btn btn--ghost" data-act="close">Cancel</button>
+      <button class="btn btn--primary" data-sendreply="${id}">Send reply</button>
+    </div>`);
+}
+
+/* Toast */
+let toastT;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.innerHTML = svg('check') + `<span>${msg}</span>`;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ================================================================
+   WIZARD STEP LOGIC
+   ================================================================ */
+function collectStep(){
+  const g = id => document.getElementById(id);
+  const d = S.draft;
+  if(S.step === 1){ d.make = g('in-make')?.value; d.model = g('in-model')?.value; d.yr = g('in-yr')?.value; }
+  if(S.step === 2){
+    d.km = g('in-km')?.value; d.col = g('in-col')?.value;
+    d.tr = g('in-tr')?.value; d.fuel = g('in-fuel')?.value;
+    d.cond = document.querySelector('input[name="cond"]:checked')?.value;
+  }
+  if(S.step === 4){ d.price = g('in-price')?.value; }
+}
+
+function validateStep(){
+  let ok = true;
+  const fail = id => { document.getElementById(id)?.classList.add('err'); ok = false; };
+  document.querySelectorAll('.field.err').forEach(e => e.classList.remove('err'));
+  if(S.step === 1){
+    if(!S.draft.make) fail('f-make');
+    if(!S.draft.model) fail('f-model');
+    if(!S.draft.yr) fail('f-yr');
+  }
+  if(S.step === 4 && !S.draft.price) fail('f-price');
+  return ok;
+}
+</script>
+
+<script>
+/* ================================================================
+   EVENT WIRING
+   ================================================================ */
+const root = document.getElementById('root');
+
+/* --- Prototype chrome --- */
+document.getElementById('deviceToggle').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  S.device = b.dataset.device;
+  root.className = 'dev-' + S.device;
+  [...e.currentTarget.children].forEach(x => x.setAttribute('aria-pressed', x === b));
+  render();
+});
+
+document.getElementById('roleToggle').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  S.role = b.dataset.role;
+  S.q = ''; S.inqFilter = 'all'; S.filters = {max:null, tr:'', fuel:''};
+  document.getElementById('topSearch').value = '';
+  [...e.currentTarget.children].forEach(x => x.setAttribute('aria-pressed', x === b));
+  go(HOME[S.role]);
+  toast(`Signed in as ${WHO[S.role].n}`);
+});
+
+function setBrand(hex){
+  document.documentElement.style.setProperty('--brand', hex);
+  document.querySelectorAll('#brandPicker button')
+    .forEach(x => x.setAttribute('aria-pressed', x.dataset.brand === hex));
+}
+document.getElementById('brandPicker').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  setBrand(b.dataset.brand);
+});
+
+/* --- Global delegated clicks --- */
+document.addEventListener('click', e => {
+  const t = e.target;
+
+  const nav = t.closest('[data-nav]');
+  if(nav){
+    const to = nav.dataset.nav;
+    if(to === 'back'){ go(S.role === 'customer' ? 'browse' : 'inventory'); return; }
+    if(to === 'logout'){ toast('Signed out'); return; }
+    go(to); return;
+  }
+
+  const carBtn = t.closest('[data-car]');
+  if(carBtn && !t.closest('[data-edit],[data-del]')){
+    S.carId = +carBtn.dataset.car; S.shot = 0; go('detail'); return;
+  }
+
+  const step = t.closest('[data-step]');
+  if(step){
+    collectStep();
+    const dir = +step.dataset.step;
+    if(dir > 0 && !validateStep()) return;
+    S.step = Math.min(4, Math.max(1, S.step + dir));
+    render(); return;
+  }
+
+  const shot = t.closest('[data-shot]');
+  if(shot){
+    const c = car(S.carId);
+    S.shot = (S.shot + +shot.dataset.shot + c.shots) % c.shots;
+    paintShot();
+    return;
+  }
+  const goshot = t.closest('[data-goshot]');
+  if(goshot){
+    S.shot = +goshot.dataset.goshot;
+    paintShot();
+    return;
+  }
+
+  const clear = t.closest('[data-clear]');
+  if(clear){
+    const k = clear.dataset.clear;
+    if(k === 'all') S.filters = {max:null, tr:'', fuel:''};
+    else S.filters[k] = k === 'max' ? null : '';
+    closeModal(); render(); return;
+  }
+
+  const brandBtn = t.closest('[data-brand]');
+  if(brandBtn && !t.closest('#brandPicker')){ setBrand(brandBtn.dataset.brand); toast('Brand colour updated'); return; }
+
+  const reply = t.closest('[data-reply]');
+  if(reply){ replyModal(+reply.dataset.reply); return; }
+
+  const sendReply = t.closest('[data-sendreply]');
+  if(sendReply){
+    const id = +sendReply.dataset.sendreply, q = INQ.find(x => x.id === id);
+    q.status = document.getElementById('rStatus').value; q.unread = false;
+    closeModal(); render(); toast(`Reply sent to ${q.who}`); return;
+  }
+
+  const contacted = t.closest('[data-contacted]');
+  if(contacted){
+    const q = INQ.find(x => x.id === +contacted.dataset.contacted);
+    q.status = 'contacted'; q.unread = false;
+    render(); toast(`${q.who} marked as contacted`); return;
+  }
+
+  const edit = t.closest('[data-edit]');
+  if(edit){ S.carId = +edit.dataset.edit; S.step = 1; go('sell'); return; }
+
+  const del = t.closest('[data-del]');
+  if(del){ toast('Delete needs confirmation — wired in Phase 1B'); return; }
+
+  const act = t.closest('[data-act]');
+  if(act){
+    switch(act.dataset.act){
+      case 'filters':  filterModal(); break;
+      case 'close':    closeModal(); break;
+      case 'applyFilters': {
+        const max = +document.getElementById('fMax').value;
+        S.filters.max  = max < 16000000 ? max : null;
+        S.filters.tr   = document.getElementById('fTr').value;
+        S.filters.fuel = document.getElementById('fFuel').value;
+        closeModal(); render(); break;
+      }
+      case 'contact':  contactModal(); break;
+      case 'sendInquiry':
+        closeModal(); S.successKind = 'inquiry'; go('success'); break;
+      case 'wish':     toast('Saved to your wishlist'); break;
+      case 'addphoto':
+        S.draft.photos = Math.min(8, (S.draft.photos || 3) + 2); render(); break;
+      case 'publish':
+        collectStep();
+        if(!validateStep()) return;
+        S.successKind = 'listing'; go('success'); break;
+      case 'readall':
+        INQ.forEach(i => i.unread = false); render(); toast('All inquiries marked read'); break;
+      case 'export':   toast('CSV export lands in Phase 1E'); break;
+      case 'invite':   toast('Invite sent'); break;
+      case 'save':     toast('Settings saved'); break;
+    }
+    return;
+  }
+
+  const sort = t.closest('[data-sort]');
+  if(sort){
+    const k = sort.dataset.sort;
+    S.tblSort = {key:k, dir: S.tblSort.key === k && S.tblSort.dir === 'asc' ? 'desc' : 'asc'};
+    render(); return;
+  }
+
+  if(t === scrim) closeModal();
+});
+
+/* --- Inputs --- */
+let debounce;
+document.addEventListener('input', e => {
+  if(e.target.id === 'browseSearch' || e.target.id === 'invSearch'){
+    clearTimeout(debounce);
+    const v = e.target.value;
+    debounce = setTimeout(() => {                    // §Performance: debounced search
+      S.q = v; render();
+      const f = document.getElementById(e.target.id);
+      if(f){ f.focus(); f.setSelectionRange(v.length, v.length); }
+    }, 260);
+  }
+  if(e.target.id === 'topSearch'){
+    clearTimeout(debounce);
+    const v = e.target.value;
+    debounce = setTimeout(() => {
+      S.q = v;
+      if(!['browse','inventory'].includes(S.screen)) S.screen = S.role === 'customer' ? 'browse' : 'inventory';
+      render();
+    }, 260);
+  }
+});
+
+document.addEventListener('change', e => {
+  if(e.target.id === 'sortSel'){ S.sortBy = e.target.value; render(); }
+  if(e.target.id === 'inqFilter'){ S.inqFilter = e.target.value; render(); }
+  if(e.target.id === 'in-make'){ S.draft.make = e.target.value; S.draft.model = ''; render(); }
+});
+
+/* --- Keyboard: rows, carousel, escape --- */
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && !scrim.hidden) closeModal();
+  if(e.key === 'Enter' && e.target.matches('tr[data-car]')){
+    S.carId = +e.target.dataset.car; S.shot = 0; go('detail');
+  }
+  if(S.screen === 'detail' && !e.target.matches('input,textarea,select')){
+    const c = car(S.carId);
+    if(e.key === 'ArrowRight'){ S.shot = (S.shot + 1) % c.shots; }
+    if(e.key === 'ArrowLeft'){  S.shot = (S.shot - 1 + c.shots) % c.shots; }
+    if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') paintShot();
+  }
+});
+
+/* --- Real narrow viewports use the mobile layout automatically --- */
+const mq = typeof window.matchMedia === 'function'
+  ? window.matchMedia('(max-width:860px)')
+  : {matches:false, addEventListener(){}};
+function syncViewport(){
+  if(mq.matches && S.device !== 'mobile'){
+    S.device = 'mobile';
+    root.className = 'dev-mobile';
+    document.querySelectorAll('#deviceToggle button')
+      .forEach(b => b.setAttribute('aria-pressed', b.dataset.device === 'mobile'));
+  }
+}
+mq.addEventListener('change', syncViewport);
+
+/* --- Boot --- */
+syncViewport();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if (Test-Path 'PHASE_1C_COMPLETE.md') { $content = Get-Content 'PHASE_1C_COMPLETE.md' -Raw; Write-Host \"✅ PHASE 1C COMPLETE!`n$content\" } else { exit 0 }",
+            "shell": "powershell",
+            "statusMessage": "Checking Phase 1C status..."
+          }
+        ]
+      }
+    ]
+  }
+}

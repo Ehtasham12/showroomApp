@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sell your car — Awan Cars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#1F2937;
+    --secondary:#3B82F6;
+    --accent:#EF4444;
+    --accent-dark:#DC2626;
+    --neutral:#F3F4F6;
+    --white:#FFFFFF;
+    --text:#111827;
+    --text-muted:#6B7280;
+    --text-faint:#9CA3AF;
+    --border:#E5E7EB;
+    --border-strong:#D1D5DB;
+    --green-bg:#DCFCE7;
+    --green-text:#166534;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    --sidebar-w:64px;
+    --header-h:56px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--neutral);
+    color:var(--text);
+    line-height:1.5;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+
+  /* ---------- Header ---------- */
+  .header{
+    position:fixed;top:0;left:0;right:0;height:var(--header-h);
+    background:var(--primary);
+    display:flex;align-items:center;gap:12px;
+    padding:0 16px;z-index:40;
+  }
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand-mark{
+    width:36px;height:36px;border-radius:50%;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:600;font-size:12px;flex-shrink:0;
+  }
+  .brand-name{color:#fff;font-weight:600;font-size:16px;white-space:nowrap}
+  .brand-tag{color:#9CA3AF;font-size:11px;line-height:1;margin-top:2px}
+  .brand-text{display:flex;flex-direction:column;min-width:0}
+  .header-spacer{flex:1}
+  .header-icon{
+    width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:#D1D5DB;background:transparent;border:none;position:relative;
+  }
+  .header-icon:hover{background:rgba(255,255,255,.08)}
+  .header-avatar{
+    width:34px;height:34px;border-radius:50%;background:#4B5563;
+    color:#fff;font-size:12px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .menu-btn{display:none;background:none;border:none;color:#fff;padding:6px}
+
+  /* ---------- Sidebar (web) ---------- */
+  .sidebar{
+    position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);
+    background:var(--primary);
+    display:flex;flex-direction:column;align-items:center;
+    padding:14px 0;gap:6px;z-index:30;
+  }
+  .side-link{
+    width:44px;height:44px;border-radius:var(--radius-sm);
+    display:flex;align-items:center;justify-content:center;
+    color:#9CA3AF;position:relative;
+  }
+  .side-link.active{background:var(--accent);color:#fff}
+  .side-link:not(.active):hover{background:rgba(255,255,255,.08);color:#fff}
+  .side-badge{
+    position:absolute;top:6px;right:6px;min-width:16px;height:16px;
+    background:var(--accent);color:#fff;border-radius:8px;
+    font-size:10px;font-weight:600;display:flex;align-items:center;
+    justify-content:center;padding:0 4px;border:2px solid var(--primary);
+  }
+  .side-spacer{flex:1}
+
+  /* ---------- Main ---------- */
+  .main{
+    margin-left:var(--sidebar-w);
+    padding-top:var(--header-h);
+    min-height:100vh;
+  }
+  .content{max-width:820px;margin:0 auto;padding:24px 20px 80px}
+
+  .back-row{display:flex;align-items:center;gap:6px;color:var(--text-muted);
+    font-size:14px;margin-bottom:16px}
+  .back-row:hover{color:var(--text)}
+
+  .page-head{margin-bottom:24px}
+  .page-title{font-size:26px;font-weight:700;letter-spacing:-.01em}
+  .page-sub{color:var(--text-muted);font-size:14px;margin-top:4px}
+
+  /* progress */
+  .steps{display:flex;gap:8px;margin-bottom:24px}
+  .step{flex:1;height:4px;border-radius:2px;background:var(--border)}
+  .step.done{background:var(--accent)}
+
+  /* ---------- Card / form ---------- */
+  .card{
+    background:var(--white);border:1px solid var(--border);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:24px;margin-bottom:20px;
+  }
+  .card-title{font-size:16px;font-weight:600;margin-bottom:4px}
+  .card-desc{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1 / -1}
+  label{font-size:13px;font-weight:500;color:#374151}
+  label .req{color:var(--accent)}
+
+  .control{
+    height:44px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+    padding:0 12px;font-size:15px;font-family:inherit;color:var(--text);
+    background:var(--white);width:100%;transition:border-color .12s,box-shadow .12s;
+  }
+  textarea.control{height:auto;padding:12px;min-height:96px;resize:vertical;line-height:1.5}
+  .control::placeholder{color:var(--text-faint)}
+  .control:hover{border-color:#9CA3AF}
+  .control:focus{outline:none;border-color:var(--secondary);
+    box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+  select.control{
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;
+  }
+  .input-prefix{position:relative}
+  .input-prefix .prefix{
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    color:var(--text-muted);font-size:15px;pointer-events:none;
+  }
+  .input-prefix .control{padding-left:38px}
+
+  /* segmented control (transmission / fuel) */
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg-opt{position:relative}
+  .seg-opt input{position:absolute;opacity:0;width:0;height:0}
+  .seg-opt span{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:9px 16px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+    font-size:14px;color:#374151;background:var(--white);transition:all .12s;
+  }
+  .seg-opt input:checked + span{
+    border-color:var(--accent);background:#FEF2F2;color:var(--accent-dark);font-weight:500;
+  }
+  .seg-opt input:focus-visible + span{box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+
+  /* photo uploader */
+  .drop{
+    border:2px dashed var(--border-strong);border-radius:var(--radius);
+    padding:32px 20px;text-align:center;color:var(--text-muted);
+    transition:border-color .12s,background .12s;cursor:pointer;
+  }
+  .drop:hover,.drop.drag{border-color:var(--secondary);background:#F8FAFF}
+  .drop-icon{font-size:30px;color:var(--text-faint);margin-bottom:8px}
+  .drop strong{color:var(--secondary);font-weight:500}
+  .drop small{display:block;margin-top:6px;font-size:12px;color:var(--text-faint)}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));
+    gap:10px;margin-top:14px}
+  .thumb{position:relative;aspect-ratio:4/3;border-radius:var(--radius-sm);
+    overflow:hidden;background:var(--neutral);border:1px solid var(--border)}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .rm{
+    position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;
+    background:rgba(17,24,39,.72);color:#fff;border:none;font-size:14px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .thumb .cover{position:absolute;bottom:0;left:0;right:0;background:rgba(17,24,39,.72);
+    color:#fff;font-size:10px;text-align:center;padding:2px}
+
+  /* footer actions */
+  .actions{
+    display:flex;gap:12px;justify-content:flex-end;align-items:center;
+    flex-wrap:wrap;
+  }
+  .hint{font-size:13px;color:var(--text-muted);margin-right:auto}
+  .btn{
+    height:46px;padding:0 22px;border-radius:var(--radius-sm);font-size:15px;
+    font-weight:600;border:1px solid transparent;display:inline-flex;
+    align-items:center;justify-content:center;gap:8px;
+  }
+  .btn-ghost{background:var(--white);border-color:var(--border-strong);color:#374151}
+  .btn-ghost:hover{background:var(--neutral)}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-dark)}
+  .btn-primary:active{transform:scale(.99)}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.3)}
+
+  /* mobile bottom nav */
+  .mobile-nav{display:none}
+  .backdrop{display:none}
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120%);
+    background:var(--primary);color:#fff;padding:12px 20px;border-radius:var(--radius-sm);
+    font-size:14px;display:flex;align-items:center;gap:10px;z-index:60;
+    box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform .28s;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast i{color:#4ADE80}
+
+  /* ---------- Tablet ---------- */
+  @media (max-width:1024px){
+    .content{max-width:100%}
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:768px){
+    :root{--sidebar-w:0px}
+    .menu-btn{display:block}
+    .sidebar{
+      transform:translateX(-100%);width:240px;
+      transition:transform .25s;padding:14px 12px;align-items:stretch;
+    }
+    .sidebar.open{transform:translateX(0)}
+    .side-link{width:100%;justify-content:flex-start;gap:12px;padding:0 14px;
+      font-size:15px;color:#D1D5DB;height:46px}
+    .side-link .lbl{display:inline}
+    .backdrop.show{display:block;position:fixed;inset:var(--header-h) 0 0 0;
+      background:rgba(0,0,0,.4);z-index:25}
+    .main{margin-left:0}
+    .content{padding:16px 14px 96px}
+    .page-title{font-size:22px}
+    .card{padding:18px 16px;border-radius:var(--radius)}
+    .grid{grid-template-columns:1fr;gap:14px}
+    .brand-tag{display:none}
+    .actions{position:sticky;bottom:0}
+    .actions .btn{flex:1}
+    .hint{display:none}
+    .mobile-nav{
+      display:flex;position:fixed;bottom:0;left:0;right:0;height:60px;
+      background:var(--white);border-top:1px solid var(--border);z-index:35;
+    }
+    .mobile-nav a{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:2px;color:var(--text-faint);font-size:10px;font-weight:500;
+    }
+    .mobile-nav a.active{color:var(--accent)}
+    .mobile-nav i{font-size:20px}
+    .content{padding-bottom:120px}
+  }
+  .side-link .lbl{display:none}
+  @media (max-width:768px){.side-link .lbl{display:inline}}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- Icons via inline SVG helper -->
+<header class="header">
+  <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="brand">
+    <div class="brand-mark">AC</div>
+    <div class="brand-text">
+      <span class="brand-name">Awan Cars</span>
+      <span class="brand-tag">Find it. Drive it. Own it.</span>
+    </div>
+  </div>
+  <div class="header-spacer"></div>
+  <button class="header-icon" aria-label="Notifications">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  </button>
+  <div class="header-avatar">RK</div>
+</header>
+
+<div class="backdrop" id="backdrop"></div>
+<nav class="sidebar" id="sidebar" aria-label="Primary">
+  <a class="side-link" href="#" title="Browse">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2v-4l-3-5H6L3 13v4h2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>
+    <span class="lbl">Browse cars</span>
+  </a>
+  <a class="side-link active" href="#" title="Sell">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="lbl">Sell your car</span>
+  </a>
+  <a class="side-link" href="#" title="Add">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span class="lbl">New listing</span>
+  </a>
+  <a class="side-link" href="#" title="Messages">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="lbl">Messages</span>
+    <span class="side-badge">3</span>
+  </a>
+  <a class="side-link" href="#" title="Profile">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+    <span class="lbl">Profile</span>
+  </a>
+  <div class="side-spacer"></div>
+  <a class="side-link" href="#" title="Sign out">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <span class="lbl">Sign out</span>
+  </a>
+</nav>
+
+<main class="main">
+  <div class="content">
+
+    <a class="back-row" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to browse
+    </a>
+
+    <div class="page-head">
+      <h1 class="page-title">Sell your car</h1>
+      <p class="page-sub">List your vehicle in a few minutes. Fields marked <span style="color:var(--accent)">*</span> are required.</p>
+    </div>
+
+    <div class="steps" aria-hidden="true">
+      <div class="step done"></div>
+      <div class="step done"></div>
+      <div class="step"></div>
+    </div>
+
+    <form id="sellForm" novalidate>
+
+      <!-- Car details -->
+      <section class="card">
+        <h2 class="card-title">Car details</h2>
+        <p class="card-desc">Tell buyers what you're selling.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="make">Make <span class="req">*</span></label>
+            <select id="make" class="control" required>
+              <option value="">Select make</option>
+              <option>Toyota</option><option>Honda</option><option>Suzuki</option>
+              <option>Nissan</option><option>Volkswagen</option><option>Mitsubishi</option>
+              <option>Chevrolet</option><option>Kia</option><option>Hyundai</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="model">Model <span class="req">*</span></label>
+            <input id="model" class="control" placeholder="e.g. Corolla Altis" required>
+          </div>
+          <div class="field">
+            <label for="year">Year <span class="req">*</span></label>
+            <select id="year" class="control" required>
+              <option value="">Select year</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="mileage">Mileage (km) <span class="req">*</span></label>
+            <input id="mileage" class="control" inputmode="numeric" placeholder="e.g. 41000" required>
+          </div>
+          <div class="field full">
+            <label for="stock">Stock number</label>
+            <input id="stock" class="control" placeholder="Optional — for your own tracking">
+          </div>
+        </div>
+      </section>
+
+      <!-- Specs -->
+      <section class="card">
+        <h2 class="card-title">Specifications</h2>
+        <p class="card-desc">Help buyers filter and compare.</p>
+        <div class="grid">
+          <div class="field full">
+            <label>Transmission <span class="req">*</span></label>
+            <div class="seg" role="radiogroup" aria-label="Transmission">
+              <label class="seg-opt"><input type="radio" name="transmission" checked><span>Automatic</span></label>
+              <label class="seg-opt"><input type="radio" name="transmission"><span>Manual</span></label>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Fuel type <span class="req">*</span></label>
+            <div class="seg" role="radiogroup" aria-label="Fuel type">
+              <label class="seg-opt"><input type="radio" name="fuel" checked><span>Petrol</span></label>
+              <label class="seg-opt"><input type="radio" name="fuel"><span>Diesel</span></label>
+              <label class="seg-opt"><input type="radio" name="fuel"><span>Hybrid</span></label>
+              <label class="seg-opt"><input type="radio" name="fuel"><span>Electric</span></label>
+              <label class="seg-opt"><input type="radio" name="fuel"><span>CNG</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="color">Colour</label>
+            <input id="color" class="control" placeholder="e.g. Pearl White">
+          </div>
+          <div class="field">
+            <label for="condition">Condition <span class="req">*</span></label>
+            <select id="condition" class="control" required>
+              <option>Used — excellent</option>
+              <option>Used — good</option>
+              <option>Used — fair</option>
+              <option>New</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="desc">Description</label>
+            <textarea id="desc" class="control" placeholder="Service history, accident-free, recent work done, reason for selling…"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing & availability -->
+      <section class="card">
+        <h2 class="card-title">Pricing &amp; availability</h2>
+        <p class="card-desc">Set your asking price.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="price">Price <span class="req">*</span></label>
+            <div class="input-prefix">
+              <span class="prefix">Rs</span>
+              <input id="price" class="control" inputmode="numeric" placeholder="1,150,000" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="status">Availability <span class="req">*</span></label>
+            <select id="status" class="control" required>
+              <option>Available</option>
+              <option>Reserved</option>
+              <option>Sold</option>
+            </select>
+          </div>
+          <div class="field full" style="flex-direction:row;align-items:center;gap:10px">
+            <input type="checkbox" id="negotiable" style="width:18px;height:18px;accent-color:var(--accent)">
+            <label for="negotiable" style="font-weight:400;color:var(--text-muted)">Price is negotiable</label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Photos -->
+      <section class="card">
+        <h2 class="card-title">Photos</h2>
+        <p class="card-desc">Add up to 12 photos. The first one becomes the cover.</p>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload photos">
+          <div class="drop-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div><strong>Click to upload</strong> or drag photos here</div>
+          <small>JPG or PNG, up to 5 MB each</small>
+          <input type="file" id="fileInput" accept="image/*" multiple hidden>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+      </section>
+
+      <!-- Contact -->
+      <section class="card">
+        <h2 class="card-title">Contact details</h2>
+        <p class="card-desc">How buyers reach you about this car.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="cname">Contact name <span class="req">*</span></label>
+            <input id="cname" class="control" placeholder="Your name" required>
+          </div>
+          <div class="field">
+            <label for="phone">Phone / WhatsApp <span class="req">*</span></label>
+            <input id="phone" class="control" inputmode="tel" placeholder="0334 7815664" required>
+          </div>
+        </div>
+      </section>
+
+      <!-- Actions -->
+      <div class="actions">
+        <span class="hint">You can edit this listing anytime after publishing.</span>
+        <button type="button" class="btn btn-ghost">Save draft</button>
+        <button type="submit" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Publish listing
+        </button>
+      </div>
+
+    </form>
+  </div>
+</main>
+
+<!-- Mobile bottom nav -->
+<nav class="mobile-nav" aria-label="Primary mobile">
+  <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2v-4l-3-5H6L3 13v4h2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>Browse</a>
+  <a href="#" class="active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Sell</a>
+  <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</a>
+</nav>
+
+<div class="toast" id="toast">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  Listing published
+</div>
+
+<script>
+  // Year dropdown
+  (function(){
+    var sel=document.getElementById('year');
+    var now=new Date().getFullYear();
+    for(var y=now;y>=1990;y--){var o=document.createElement('option');o.textContent=y;sel.appendChild(o);}
+  })();
+
+  // Mobile menu
+  var menuBtn=document.getElementById('menuBtn'),
+      sidebar=document.getElementById('sidebar'),
+      backdrop=document.getElementById('backdrop');
+  function toggleMenu(open){
+    sidebar.classList.toggle('open',open);
+    backdrop.classList.toggle('show',open);
+  }
+  menuBtn.addEventListener('click',function(){toggleMenu(!sidebar.classList.contains('open'));});
+  backdrop.addEventListener('click',function(){toggleMenu(false);});
+
+  // Thousands formatting for price & mileage
+  ['price','mileage'].forEach(function(id){
+    var el=document.getElementById(id);
+    el.addEventListener('input',function(){
+      var raw=el.value.replace(/[^0-9]/g,'');
+      el.value=raw?Number(raw).toLocaleString('en-US'):'';
+    });
+  });
+
+  // Photo upload
+  var drop=document.getElementById('drop'),
+      fileInput=document.getElementById('fileInput'),
+      thumbs=document.getElementById('thumbs'),
+      files=[];
+  drop.addEventListener('click',function(){fileInput.click();});
+  drop.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fileInput.click();}});
+  ['dragover','dragenter'].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add('drag');});
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove('drag');});
+  });
+  drop.addEventListener('drop',function(e){handleFiles(e.dataTransfer.files);});
+  fileInput.addEventListener('change',function(){handleFiles(fileInput.files);});
+  function handleFiles(list){
+    Array.prototype.forEach.call(list,function(f){
+      if(!f.type.startsWith('image/')||files.length>=12)return;
+      files.push(f);
+    });
+    render();
+  }
+  function render(){
+    thumbs.innerHTML='';
+    files.forEach(function(f,i){
+      var url=URL.createObjectURL(f);
+      var d=document.createElement('div');d.className='thumb';
+      d.innerHTML='<img src="'+url+'" alt="">'+
+        (i===0?'<span class="cover">Cover</span>':'')+
+        '<button type="button" class="rm" aria-label="Remove photo">&times;</button>';
+      d.querySelector('.rm').addEventListener('click',function(){files.splice(i,1);render();});
+      thumbs.appendChild(d);
+    });
+  }
+
+  // Submit
+  var toast=document.getElementById('toast');
+  document.getElementById('sellForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var bad=null;
+    this.querySelectorAll('[required]').forEach(function(el){
+      var empty=!el.value;
+      el.style.borderColor=empty?'#EF4444':'';
+      if(empty&&!bad)bad=el;
+    });
+    if(bad){bad.focus();bad.scrollIntoView({behavior:'smooth',block:'center'});return;}
+    toast.classList.add('show');
+    setTimeout(function(){toast.classList.remove('show');},2600);
+  });
+</script>
+</body>
+</html>
