@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, X } from 'lucide-react';
-import type { RootState } from '../store';
+import type { RootState, AppDispatch } from '../store/store';
 import {
   updateFormData,
   addPhotos,
@@ -21,7 +21,7 @@ const CAR_MAKES = [
 ];
 
 export const SellCar = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { formData, photos, loading, error, success } = useSelector(
     (state: RootState) => state.sellCar

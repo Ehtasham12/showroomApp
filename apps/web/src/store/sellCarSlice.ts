@@ -24,6 +24,7 @@ export interface SellCarFormData {
   price: number;
   sellerName: string;
   sellerPhone: string;
+  features?: string[];
 }
 
 export interface SellCarState {
@@ -135,7 +136,7 @@ const sellCarSlice = createSlice({
     resetForm: (state) => {
       state.photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
       state.currentStep = 1;
-      state.formData = { features: [], description: '' };
+      state.formData = { ...initialState.formData };
       state.photos = [];
       state.error = null;
       state.success = false;
@@ -155,7 +156,7 @@ const sellCarSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.successData = action.payload;
-        state.formData = { features: [], description: '' };
+        state.formData = { ...initialState.formData };
         state.photos = [];
       })
       .addCase(submitCarListing.rejected, (state, action) => {
