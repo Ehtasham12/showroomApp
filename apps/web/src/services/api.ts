@@ -2,7 +2,7 @@ import axios from 'axios'
 import type { AxiosInstance } from 'axios'
 import type { Car, Inquiry, CreateCarDto, UpdateCarDto, CarFiltersDto, CreateInquiryDto } from '../types'
 
-const API_URL = 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,

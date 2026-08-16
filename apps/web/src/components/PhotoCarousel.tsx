@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import type { CarImage } from '../types'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { API_BASE_URL } from '../config/api'
 
 interface PhotoCarouselProps {
   images: CarImage[]
@@ -36,8 +37,7 @@ export const PhotoCarousel = ({ images, alt }: PhotoCarouselProps) => {
   }
 
   const currentImage = sortedImages[activeIndex]
-  const backendUrl = 'http://localhost:3000'
-  const imageUrl = currentImage.url.startsWith('http') ? currentImage.url : `${backendUrl}${currentImage.url}`
+  const imageUrl = currentImage.url.startsWith('http') ? currentImage.url : `${API_BASE_URL}${currentImage.url}`
 
   return (
     <div className="space-y-3">
@@ -93,7 +93,7 @@ export const PhotoCarousel = ({ images, alt }: PhotoCarouselProps) => {
               aria-label={`Go to image ${index + 1}`}
             >
               <img
-                src={image.url.startsWith('http') ? image.url : `${backendUrl}${image.url}`}
+                src={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
                 loading="lazy"

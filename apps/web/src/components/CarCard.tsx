@@ -1,4 +1,5 @@
 import type { Car } from '../types'
+import { API_BASE_URL } from '../config/api'
 
 interface CarCardProps {
   car: Car
@@ -6,9 +7,8 @@ interface CarCardProps {
 }
 
 export function CarCard({ car, onClick }: CarCardProps) {
-  const backendUrl = 'http://localhost:3000'
   const imageUrl = car.images[0]?.url
-    ? `${backendUrl}${car.images[0].url}`
+    ? `${API_BASE_URL}${car.images[0].url}`
     : 'https://images.unsplash.com/photo-1464207687429-7505649dae38?w=400&h=300&fit=crop'
 
   const specs = car.specifications ? JSON.parse(car.specifications) : {}

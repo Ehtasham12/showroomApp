@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Car } from '../types';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 export interface PhotoPreview {
   file: File;
@@ -88,7 +89,7 @@ export const submitCarListing = createAsyncThunk(
         data.append(`images`, photo);
       });
 
-      const response = await axios.post('http://localhost:3000/cars', data);
+      const response = await axios.post(`${API_BASE_URL}/cars`, data);
 
       return response.data;
     } catch (error: any) {
