@@ -7,6 +7,7 @@
     "dev": "nest start --watch",
     "start": "nest start",
     "build": "nest build",
+    "postinstall": "prisma generate",
     "prebuild": "rimraf dist",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"src/**/*.ts\"",
